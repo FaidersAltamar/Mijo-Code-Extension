@@ -2,7 +2,7 @@
 	"name": "mijo-code",
 	"displayName": "Mijo Code",
 	"description": "AI coding agent chat inside VS Code",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"publisher": "MijoCodeExtension",
 	"license": "MIT",
 	"icon": "media/icon.png",
