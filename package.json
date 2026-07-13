@@ -1,0 +1,161 @@
+{
+	"name": "mijo-code",
+	"displayName": "Mijo Code",
+	"description": "AI coding agent chat inside VS Code",
+	"version": "0.0.2",
+	"publisher": "mijocode",
+	"license": "MIT",
+	"icon": "media/icon.png",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/mijocode/mijo-code.git"
+	},
+	"bugs": {
+		"url": "https://github.com/mijocode/mijo-code/issues"
+	},
+	"homepage": "https://mijocode.com",
+	"engines": {
+		"vscode": "^1.105.0"
+	},
+	"categories": [
+		"AI",
+		"Chat",
+		"Programming Languages"
+	],
+	"keywords": [
+		"ai",
+		"agent",
+		"chat",
+		"copilot",
+		"assistant"
+	],
+	"activationEvents": [],
+	"main": "./dist/extension.js",
+	"contributes": {
+		"commands": [
+			{
+				"command": "ocursor.openSettings",
+				"title": "Open Mijo Code Settings"
+			},
+			{
+				"command": "ocursor.addToChat",
+				"title": "Mijo Code: Add Selection to Chat"
+			}
+		],
+		"keybindings": [
+			{
+				"command": "ocursor.addToChat",
+				"key": "ctrl+l",
+				"mac": "cmd+l",
+				"when": "editorTextFocus"
+			}
+		],
+		"viewsContainers": {
+			"activitybar": [
+				{
+					"id": "ocursor-sidebar",
+					"title": "Mijo Code",
+					"icon": "media/icon.svg"
+				}
+			]
+		},
+		"views": {
+			"ocursor-sidebar": [
+				{
+					"type": "webview",
+					"id": "ocursor.chatView",
+					"name": "Mijo Code"
+				}
+			]
+		},
+		"configuration": [
+			{
+				"title": "Mijo Code Settings",
+				"properties": {
+					"ocursor.model": {
+						"type": "string",
+						"default": "auto",
+						"description": "The AI model to use"
+					},
+					"ocursor.maxResponseLength": {
+						"type": "integer",
+						"default": 0,
+						"description": "Maximum response length in tokens (0 = let the model decide)"
+					},
+					"ocursor.enableWorkspaceContext": {
+						"type": "boolean",
+						"default": true,
+						"description": "Enable workspace context for the AI agent"
+					},
+					"ocursor.enableFileReading": {
+						"type": "boolean",
+						"default": true,
+						"description": "Enable file reading/glob/grep tools"
+					},
+					"ocursor.enableTerminalSuggestions": {
+						"type": "boolean",
+						"default": true,
+						"description": "Enable run terminal command suggestions tool"
+					},
+					"ocursor.systemPrompt": {
+						"type": "string",
+						"default": "You are a professional coding assistant extension named Mijo Code.",
+						"description": "System prompt or custom instruction field"
+					},
+					"ocursor.language": {
+						"type": "string",
+						"default": "es",
+						"enum": ["en", "es"],
+						"enumDescriptions": ["English", "Español"],
+						"description": "Language for the extension UI"
+					}
+				}
+			}
+		]
+	},
+	"scripts": {
+		"vscode:prepublish": "pnpm run package",
+		"compile": "pnpm run check-types && pnpm run lint && node esbuild.js",
+		"watch": "npm-run-all -p watch:*",
+		"watch:esbuild": "node esbuild.js --watch",
+		"watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
+		"package": "pnpm run check-types && pnpm run lint && node esbuild.js --production",
+		"compile-tests": "tsc -p . --outDir out",
+		"watch-tests": "tsc -p . -w --outDir out",
+		"pretest": "pnpm run compile-tests && pnpm run compile && pnpm run lint",
+		"check-types": "tsc --noEmit && tsc --noEmit -p tsconfig.webview.json",
+		"lint": "eslint src",
+		"test": "vscode-test",
+		"vsix": "pnpm run package && pnpm dlx @vscode/vsce package --no-dependencies"
+	},
+	"devDependencies": {
+		"@types/mocha": "^10.0.10",
+		"@types/node": "24.x",
+		"@types/pdf-parse": "^1.1.5",
+		"@types/react": "^19.2.17",
+		"@types/react-dom": "^19.2.3",
+		"@types/vscode": "^1.105.0",
+		"@vscode/test-cli": "^0.0.15",
+		"@vscode/test-electron": "^3.0.0",
+		"esbuild": "^0.28.1",
+		"eslint": "^10.5.0",
+		"npm-run-all": "^4.1.5",
+		"typescript": "^6.0.3",
+		"typescript-eslint": "^8.61.1"
+	},
+	"overrides": {
+		"diff": "^8.0.4",
+		"serialize-javascript": "^7.0.6"
+	},
+	"dependencies": {
+		"@huggingface/hub": "^2.13.2",
+		"@huggingface/transformers": "^4.2.0",
+		"lucide-react": "^1.21.0",
+		"marked": "^18.0.5",
+		"onnxruntime-node": "^1.27.0",
+		"pdf-parse": "^2.4.5",
+		"react": "^19.2.7",
+		"react-dom": "^19.2.7",
+		"sharp": "^0.35.2"
+	}
+}
