@@ -1,83 +1,109 @@
 <div align="center">
 
-<img src="media/readme/hero.png" alt="Mijo Code — the open-source AI coding agent for VS Code" width="900"/>
-
-<br/>
-
-**The open-source AI coding agent for VS Code — built local-first.**
-
-Chat with an agent that reads your workspace, edits files, runs commands, and searches your codebase semantically. Use your Claude / ChatGPT / Gemini subscription, any API key, or run **completely offline** with llama.cpp and Ollama.
-
-[Install](#installation) · [Local AI](#-100-local-ai) · [Providers](#-providers) · [Features](#-what-it-does) · [Contributing](#contributing)
+<img src="media/readme/hero.png" alt="Mijo Code — AI coding agent for VS Code" width="900"/>
 
 </div>
 
 ---
 
-## 🔌 100% Local AI
+## What is Mijo Code?
 
-<img src="media/readme/local-stack.png" alt="Mijo Code local stack: llama.cpp, Ollama, local embeddings — works offline" width="900"/>
+**Mijo Code** is an AI coding agent that lives inside VS Code. It reads your workspace, answers questions, edits files, runs terminal commands, and searches your codebase by meaning — all from a sidebar chat.
 
-Mijo Code is designed to work **without internet** once set up:
+Use it with your existing AI subscriptions, API keys, or run it **completely offline** with local models.
 
-- **🦙 llama.cpp built in** — search Hugging Face for GGUF models, pick a quantization, download, and Mijo Code spawns and manages `llama-server` for you. Full launch control: context size, GPU layers, flash attention, KV cache types, speculative decoding, vision (`--mmproj`), and more.
-- **🐋 Ollama** — pull, manage, and chat with models from the Ollama library, zero config.
-- **🧠 Local embeddings** — semantic codebase search powered by an on-device ONNX MiniLM model. No embedding API, no key, no code leaving your machine.
-- **✈️ Airplane-mode coding** — local model + local index = a fully working AI agent, offline.
+---
 
-## 🔍 Semantic search, no cloud
+## Install
 
-<img src="media/readme/semantic-search.png" alt="Local semantic search pipeline" width="900"/>
+1. Open **VS Code**.
+2. Go to **Extensions** (`Ctrl+Shift+X`).
+3. Search for **Mijo Code**.
+4. Click **Install**.
 
-Ask questions in plain language — *"where do we refresh the auth token?"* — and the agent automatically finds code by *meaning*, not keywords. The index builds automatically, updates incrementally, and is stored locally. Prefer a hosted embedding model? Point it at any OpenAI-compatible `/embeddings` endpoint instead.
+Or install directly from the [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=MijoCodeExtension.mijo-code).
 
-## 🌐 Providers
+---
 
-<img src="media/readme/providers.png" alt="Supported providers: OAuth sign-in and API/local providers" width="900"/>
+## Get started in 30 seconds
 
-- **OAuth sign-in** — connect your existing **Claude Code**, **OpenAI Codex**, or **Google Antigravity** account and use your subscription's models directly in VS Code.
-- **API keys** — OpenAI, Anthropic, Gemini, OpenRouter presets out of the box.
-- **Custom providers** — add any OpenAI-compatible or Anthropic-style endpoint (base URL + key). Run multiple providers at once; models are fetched live and mixable in the picker.
-- **Auto mode** — a judge model routes each task to the best enabled model. Per-model reasoning effort, thinking mode, and context-size options.
+1. Open the **Mijo Code** sidebar from the Activity Bar.
+2. Pick a provider:
+   - **Local:** download a GGUF model or connect to Ollama.
+   - **OAuth:** sign in with Claude Code, OpenAI Codex, or Google Antigravity.
+   - **API:** paste your key for OpenAI, Anthropic, Gemini, OpenRouter, or a custom endpoint.
+3. Start typing. Press `Ctrl + L` (`Cmd + L` on macOS) to add your current code selection to the chat.
 
-## ⚡ What it does
+---
+
+## What you can do
 
 | | |
 |---|---|
-| 💬 **Agent chat** | Multi-tab sidebar chat with @-mentions: files, folders, code, `@Docs`, git commits, branch diffs, terminals, rules, past chats |
-| 🛠️ **25 tools** | Read/write/edit, shell, grep/glob, semantic search, web search & fetch, notebooks, todos, subagents, MCP |
-| ✅ **Inline review** | Per-hunk **Keep / Undo** CodeLenses on every agent edit — no git required |
-| 🧭 **Modes** | Agent · Ask · Plan · Debug · Multitask (Ask/Plan are read-only) |
-| 🛡️ **Approval policy** | Per-action allow/ask/review/deny with risk heuristics (`rm -rf`, `sudo`, `.env`, secrets…) and wildcard allow/deny lists |
-| 🔗 **MCP & hooks** | Full MCP client, plus 11 lifecycle hooks (Cursor/Claude-Code compatible) and custom subagents |
-| 🖼️ **Images & PDFs** | Paste screenshots, read images and PDFs directly into context |
-| ⚙️ **Extras** | `Ctrl+L` adds selection to chat, personas, custom system prompt, token usage tracking, completion notifications |
+| 💬 **Chat with your codebase** | Ask questions, get explanations, and iterate in multi-turn conversations. |
+| 🔍 **Semantic search** | Find code by meaning, not just keywords, using a local embedding model. |
+| 🛠️ **Edit files** | The agent can read, write, and patch files in your workspace. |
+| ✅ **Review every change** | Keep or undo each edit with inline CodeLenses — no git required. |
+| 🖥️ **Run commands** | Let the agent run shell commands and see the output in context. |
+| 🌐 **Search the web** | Bring live documentation and references into the conversation. |
+| 🔗 **MCP tools** | Connect external services through Model Context Protocol servers. |
+| 🎭 **Personas** | Switch personalities and system prompts for different tasks. |
+| 🌙 **Dark mode ready** | UI designed to match the VS Code look and feel. |
+| 🌐 **English / Español** | Switch the interface language from Settings. |
 
-## Installation
+---
 
-1. Install **Mijo Code** from the VS Code Marketplace (or grab the `.vsix` from [Releases](https://github.com/mijocode/mijo-code/releases)).
-2. Open the Mijo Code sidebar and pick a provider:
-   - **Local:** one-click llama.cpp install, or point at a running Ollama.
-   - **Account:** sign in with Claude Code / OpenAI Codex / Google Antigravity.
-   - **API:** paste a key for OpenAI, Anthropic, Gemini, OpenRouter, or any custom endpoint.
-3. Start chatting. `Ctrl+L` sends your selection to the chat.
+## Works offline
 
-> Native runtime dependencies (ONNX runtime, image processing) are downloaded once on first activation with integrity checks — they're too heavy to ship in the VSIX.
+<img src="media/readme/local-stack.png" alt="Mijo Code local stack" width="900"/>
 
-## Building from source
+Mijo Code is built to respect your privacy:
 
-```bash
-git clone https://github.com/mijocode/mijo-code.git
-cd mijo-code
-pnpm install
-pnpm run compile   # or: pnpm run watch
-```
+- **llama.cpp** — run GGUF models locally, auto-managed server.
+- **Ollama** — pull and chat with local models, zero config.
+- **Local embeddings** — semantic search powered by on-device ONNX MiniLM.
+- **No cloud required** — once set up, everything runs on your machine.
 
-Press `F5` in VS Code to launch the Extension Development Host. Build a package with `pnpm run vsix`.
+---
 
-## Contributing
+## Bring your own provider
 
-Issues and PRs welcome — see [issues](https://github.com/mijocode/mijo-code/issues).
+<img src="media/readme/providers.png" alt="Mijo Code providers" width="900"/>
+
+- **OAuth:** Claude Code · OpenAI Codex · Google Antigravity
+- **API keys:** OpenAI · Anthropic · Gemini · OpenRouter · Custom endpoints
+- **Local:** Ollama · llama.cpp
+
+---
+
+## Find code by meaning
+
+<img src="media/readme/semantic-search.png" alt="Mijo Code semantic search" width="900"/>
+
+Ask *"where do we refresh the auth token?"* and Mijo Code finds the relevant files by semantic similarity. The index builds automatically, updates incrementally, and stays on your device.
+
+---
+
+## Settings
+
+Open VS Code Settings (`Ctrl+,`) and search for **Mijo Code** to customize:
+
+- Default model and provider
+- System prompt / persona
+- Language: English or Español
+- Approval policy for risky actions
+- Workspace context and file-reading behavior
+- Maximum response length
+
+---
+
+## Support
+
+Questions, bugs, or feature requests? Open an issue on GitHub:
+
+**https://github.com/FaidersAltamar/Mijo-Code-Extension/issues**
+
+---
 
 ## License
 
