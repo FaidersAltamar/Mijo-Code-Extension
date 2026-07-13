@@ -3,17 +3,17 @@
 	"displayName": "Mijo Code",
 	"description": "AI coding agent chat inside VS Code",
 	"version": "0.0.2",
-	"publisher": "mijocode",
+	"publisher": "MijoCodeExtension",
 	"license": "MIT",
 	"icon": "media/icon.png",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/mijocode/mijo-code.git"
+		"url": "https://github.com/FaidersAltamar/Mijo-Code-Extension.git"
 	},
 	"bugs": {
-		"url": "https://github.com/mijocode/mijo-code/issues"
+		"url": "https://github.com/FaidersAltamar/Mijo-Code-Extension/issues"
 	},
-	"homepage": "https://mijocode.com",
+	"homepage": "https://github.com/FaidersAltamar/Mijo-Code-Extension",
 	"engines": {
 		"vscode": "^1.105.0"
 	},
