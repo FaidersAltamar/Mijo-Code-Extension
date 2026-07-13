@@ -57,66 +57,66 @@ export class ErrorBoundary extends React.Component<
 // CreatePlan, ReadLints, TodoWrite, AskQuestion.
 const TOOL_LABELS: Record<string, string> = {
   // Read
-  read_file: "Reading file",
-  Read: "Reading file",
+  read_file: t("tool.readingFile"),
+  Read: t("tool.readingFile"),
   // LS (list directory)
-  list_dir: "Listing directory",
-  ListDir: "Listing directory",
+  list_dir: t("tool.listingDir"),
+  ListDir: t("tool.listingDir"),
   // Glob (file name search)
-  glob: "Searching files",
-  Glob: "Searching files",
-  file_search: "Searching files",
-  FileSearch: "Searching files",
+  glob: t("tool.searchingFiles"),
+  Glob: t("tool.searchingFiles"),
+  file_search: t("tool.searchingFiles"),
+  FileSearch: t("tool.searchingFiles"),
   // Grep (content search)
-  grep: "Grepping",
-  Grep: "Grepping",
+  grep: t("tool.grepping"),
+  Grep: t("tool.grepping"),
   // SemanticSearch (codebase)
-  SemanticSearch: "Searching codebase",
+  SemanticSearch: t("tool.searchingCodebase"),
   // SearchDocs (external docs)
-  SearchDocs: "Searching docs",
+  SearchDocs: t("tool.searchingDocs"),
   // ReadLints
-  read_lints: "Reading lints",
-  ReadLints: "Reading lints",
+  read_lints: t("tool.readingLints"),
+  ReadLints: t("tool.readingLints"),
   // TodoWrite / read
-  todo_read: "Reading todos",
-  TodoRead: "Reading todos",
-  todo_write: "Updating todos",
-  TodoWrite: "Updating todos",
+  todo_read: t("tool.readingTodos"),
+  TodoRead: t("tool.readingTodos"),
+  todo_write: t("tool.updatingTodos"),
+  TodoWrite: t("tool.updatingTodos"),
   // WebSearch / WebFetch
-  web_search: "Searching the web",
-  WebSearch: "Searching the web",
-  web_fetch: "Fetching page",
-  WebFetch: "Fetching page",
+  web_search: t("tool.searchingWeb"),
+  WebSearch: t("tool.searchingWeb"),
+  web_fetch: t("tool.fetchingPage"),
+  WebFetch: t("tool.fetchingPage"),
   // Task (subagent)
-  task: "Running subagent",
-  Task: "Running subagent",
+  task: t("tool.runningSubagent"),
+  Task: t("tool.runningSubagent"),
   // AskQuestion
-  ask_question: "Waiting for your answer",
-  AskQuestion: "Waiting for your answer",
+  ask_question: t("tool.waitingAnswer"),
+  AskQuestion: t("tool.waitingAnswer"),
   // Edit
-  edit_file: "Editing file",
-  StrReplace: "Editing file",
-  Write: "Writing file",
+  edit_file: t("tool.editingFile"),
+  StrReplace: t("tool.editingFile"),
+  Write: t("tool.writingFile"),
   // Delete
-  delete_file: "Deleting file",
-  Delete: "Deleting file",
+  delete_file: t("tool.deletingFile"),
+  Delete: t("tool.deletingFile"),
   // EditNotebook
-  EditNotebook: "Editing notebook",
+  EditNotebook: t("tool.editingNotebook"),
   // Shell (terminal)
-  run_terminal: "Running command",
-  Shell: "Running command",
-  AwaitShell: "Waiting for shell",
+  run_terminal: t("tool.runningCommand"),
+  Shell: t("tool.runningCommand"),
+  AwaitShell: t("tool.waitingShell"),
   // CreatePlan
-  WritePlan: "Creating plan",
+  WritePlan: t("tool.creatingPlan"),
   // SwitchMode
-  SwitchMode: "Switching mode",
+  SwitchMode: t("tool.switchingMode"),
   // MCP
-  CallMcpTool: "Running MCP tool",
-  FetchMcpResource: "Fetching MCP resource",
-  ListMcpResources: "Listing MCP resources",
+  CallMcpTool: t("tool.runningMcp"),
+  FetchMcpResource: t("tool.fetchingMcp"),
+  ListMcpResources: t("tool.listingMcp"),
 };
 function toolLabel(name: string): string {
-  if (name.startsWith("mcp__")) return "Running MCP tool";
+  if (name.startsWith("mcp__")) return t("tool.runningMcp");
   return TOOL_LABELS[name] || name;
 }
 function capitalize(s: string): string {
@@ -185,10 +185,10 @@ function exploreSummary(tools: ToolBlock[]): string {
     else searches++;
   }
   const parts: string[] = [];
-  if (reads) parts.push(`${reads} ${reads === 1 ? "file" : "files"}`);
-  if (searches) parts.push(`${searches} ${searches === 1 ? "search" : "searches"}`);
-  if (lints) parts.push(`${lints} ${lints === 1 ? "check" : "checks"}`);
-  return "Explored " + (parts.join(" · ") || "codebase");
+  if (reads) parts.push(`${reads} ${reads === 1 ? t("explore.file") : t("explore.files")}`);
+  if (searches) parts.push(`${searches} ${searches === 1 ? t("explore.search") : t("explore.searches")}`);
+  if (lints) parts.push(`${lints} ${lints === 1 ? t("explore.check") : t("explore.checks")}`);
+  return t("explore.explored") + " " + (parts.join(" · ") || t("explore.codebase"));
 }
 
 function ExploringSection({
@@ -222,7 +222,7 @@ function ExploringSection({
           <Icon name="chevD" size={12} />
         </span>
         <Icon name="search" size={12} className="explore-icon" />
-        <span className="explore-title">{running ? "Exploring" : exploreSummary(tools)}</span>
+        <span className="explore-title">{running ? t("explore.exploring") : exploreSummary(tools)}</span>
         {running ? <span className="spinner" /> : <span className="explore-count">{tools.length}</span>}
       </div>
       {!open && running && <div className="explore-subtitle">{subtitle}</div>}
@@ -293,26 +293,26 @@ function MaxStepsCard({ block, running }: { block: import("./types").AssistantBl
     <div className="approval-card inline">
       <div className="ap-head">
         <Icon name="clock" size={14} />
-        <span className="ap-title">Paused after {block.steps} steps</span>
+        <span className="ap-title">{t("composer.pausedSteps", { steps: block.steps })}</span>
       </div>
       {!resumed && !running && (
         <div className="ap-actions">
           <div className="ap-approve-group" ref={menuRef}>
-            <button className="ap-btn allow" onClick={() => go()}>Continue</button>
-            <button className="ap-btn allow ap-arrow" title="Continue options" onClick={() => setMenu((v) => !v)}>
+            <button className="ap-btn allow" onClick={() => go()}>{t("composer.continue")}</button>
+            <button className="ap-btn allow ap-arrow" title={t("composer.continueOptions")} onClick={() => setMenu((v) => !v)}>
               <Icon name="chevD" size={11} />
             </button>
             {menu && (
               <div className="ap-menu">
                 <button
                   className="ap-menu-item"
-                  title="Continue and always auto continue from now on (updates General settings)"
+                  title={t("composer.continueAlwaysAuto")}
                   onClick={() => go(true)}
                 >
-                  Always auto continue
+                  {t("composer.alwaysAutoContinue")}
                 </button>
                 <button className="ap-menu-item" onClick={() => post({ type: "openSettings", section: "general" })}>
-                  <Icon name="settings" size={12} /> General settings…
+                  <Icon name="settings" size={12} /> {t("composer.generalSettings")}
                 </button>
               </div>
             )}
@@ -329,18 +329,18 @@ function CompactionCard({ block }: { block: import("./types").AssistantBlock & {
   if (block.status === "running") {
     return (
       <div className="compaction-card running">
-        <span className="spinner" /> Summarizing earlier conversation to free context…
+        <span className="spinner" /> {t("compaction.running")}
       </div>
     );
   }
   if (block.status === "failed") {
-    return <div className="compaction-card failed">Context summarization failed — older messages were trimmed instead.</div>;
+    return <div className="compaction-card failed">{t("compaction.failed")}</div>;
   }
   return (
     <div className={"compaction-card done" + (open ? " open" : "")}>
       <div className="compaction-head" onClick={() => setOpen((o) => !o)}>
         <Icon name={open ? "chevD" : "chevR"} size={12} />
-        <span>Earlier conversation summarized to free context</span>
+        <span>{t("compaction.done")}</span>
       </div>
       {open && block.summary && <div className="compaction-body"><Markdown text={block.summary} /></div>}
     </div>
@@ -351,7 +351,7 @@ function ThinkingCard({ block }: { block: ThinkingBlock }) {
   const [open, setOpen] = React.useState(false);
   const live = !block.endedAt;
   const secs = block.endedAt && block.startedAt ? Math.max(1, Math.round((block.endedAt - block.startedAt) / 1000)) : 0;
-  const title = live ? "Thinking" : secs ? `Thought for ${secs}s` : "Thought";
+  const title = live ? t("thinking.thinking") : secs ? t("thinking.thoughtFor", { secs }) : t("thinking.thought");
   return (
     <div className={"thinking-card" + (open ? " open" : "") + (live ? " live" : "")}>
       <div className="thinking-head" onClick={() => setOpen((o) => !o)}>
@@ -369,14 +369,14 @@ function ErrorCard({ block }: { block: ErrorBlock }) {
     return (
       <div className="error-card retrying">
         <Icon name="brain" size={12} className="error-spark" />
-        <span>Request failed, retrying ({block.retrying.attempt}/{block.retrying.max})… </span>
+        <span>{t("error.retrying", { attempt: block.retrying.attempt, max: block.retrying.max })} </span>
         <span className="error-detail">{block.message}</span>
       </div>
     );
   }
   return (
     <div className="error-card">
-      <div className="error-card-head">Request failed</div>
+      <div className="error-card-head">{t("error.requestFailed")}</div>
       <div className="error-card-body">{block.message}</div>
     </div>
   );
@@ -394,7 +394,7 @@ function PersonaSelect({
   if (!personas.length) return null;
   return (
     <div className="persona-select">
-      <div className="persona-select-label">Persona</div>
+      <div className="persona-select-label">{t("settings.personas")}</div>
       <div className="persona-cards">
         {personas.map((p) => (
           <button
@@ -423,28 +423,28 @@ function SubagentChat({ block, onBack }: { block: import("./types").ToolBlock; o
     <div className="subagent-view">
       <div className="subagent-view-head">
         <button className="sub-back" onClick={onBack}>
-          <Icon name="chevD" size={12} /> Back to chat
+          <Icon name="chevD" size={12} /> {t("subagent.backToChat")}
         </button>
-        <span className="sub-readonly">{isReadonlySubagent(block.input) ? "read-only" : "agent"}</span>
+        <span className="sub-readonly">{isReadonlySubagent(block.input) ? t("subagent.readonly") : t("subagent.subagent")}</span>
         {running && (
           <button className="sub-stop" onClick={() => post({ type: "cancelSubagent", callId: block.callId })}>
-            <Icon name="close" size={12} /> Stop
+            <Icon name="close" size={12} /> {t("app.stop")}
           </button>
         )}
       </div>
       <div className="msg user">
-        <div className="role"><Icon name="task" /> Task</div>
+        <div className="role"><Icon name="task" /> {t("subagent.task")}</div>
         <div className="bubble">
-          <div className="subagent-meta">{block.input?.description || "Subagent"} · {isReadonlySubagent(block.input) ? "Explore" : "Agent"}</div>
+          <div className="subagent-meta">{block.input?.description || t("subagent.subagent")} · {isReadonlySubagent(block.input) ? t("composer.explore") : t("composer.agent")}</div>
           {block.input?.prompt && <Markdown text={String(block.input.prompt)} />}
         </div>
       </div>
       <div className="msg assistant">
-        <div className="role"><Icon name="bot" /> Subagent</div>
+        <div className="role"><Icon name="bot" /> {t("subagent.subagent")}</div>
         <div className="bubble">
           {sub.length === 0 ? (
-            <div className="sub-empty">{running ? "Starting…" : "No activity"}</div>
-          ) : (
+            <div className="sub-empty">{running ? t("subagent.starting") : t("subagent.noActivity")}</div>
+          ) :(
             groupBlocks(sub).map((b, bi) =>
               b.kind === "explore-group" ? (
                 <ExploringSection key={bi} tools={b.tools} />

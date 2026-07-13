@@ -361,7 +361,7 @@ function optionSummary(opts: ModelOption[]): string {
     if (o.key === "thinking") {
       // Adaptive-only models: "adaptive" IS thinking, so label it "Thinking".
       const adaptiveOnly = !(o.values || []).includes("enabled");
-      if (o.value && o.value !== "disabled") parts.push(o.value === "adaptive" && !adaptiveOnly ? "Adaptive" : "Thinking");
+      if (o.value && o.value !== "disabled") parts.push(o.value === "adaptive" && !adaptiveOnly ? t("model.adaptive") : t("model.thinking"));
     } else if (o.type === "toggle") {
       if (o.value === "true") parts.push(o.label);
     } else if (o.value) {
@@ -389,12 +389,12 @@ function ThinkingControl({ value, values, onChange }: { value: string; values: s
   return (
     <div className="mo-thinking">
       <div className="mo-toggle" onClick={() => onChange(on ? "disabled" : onValue)}>
-        <span className="mo-label">Thinking</span>
+        <span className="mo-label">{t("model.thinking")}</span>
         <span className={"mo-switch" + (on ? " on" : "")}><span className="mo-knob" /></span>
       </div>
       {on && canChooseAdaptive && (
         <div className="mo-toggle sub" onClick={() => onChange(adaptive ? "enabled" : "adaptive")}>
-          <span className="mo-label">Adaptive</span>
+          <span className="mo-label">{t("model.adaptive")}</span>
           <span className={"mo-switch" + (adaptive ? " on" : "")}><span className="mo-knob" /></span>
         </div>
       )}
@@ -404,19 +404,19 @@ function ThinkingControl({ value, values, onChange }: { value: string; values: s
 
 /** Friendly labels for option values (reasoning effort tiers etc.). */
 const VALUE_LABELS: Record<string, string> = {
-  none: "None",
-  low: "Low",
-  medium: "Medium",
-  high: "High",
-  xhigh: "Extra High",
-  max: "Max",
+  none: t("model.none"),
+  low: t("model.low"),
+  medium: t("model.medium"),
+  high: t("model.high"),
+  xhigh: t("model.extraHigh"),
+  max: t("model.max"),
 };
 
 /** Editable option groups for one model (left column of the picker). */
 function ModelOptions({ model, onChange }: { model: ModelDef; onChange: (opts: ModelOption[]) => void }) {
   const setOpt = (i: number, value: string) => onChange(model.options.map((o, idx) => (idx === i ? { ...o, value } : o)));
   if (model.options.length === 0) {
-    return <div className="mo-empty">No options for this model.</div>;
+    return <div className="mo-empty">{t("model.noOptions")}</div>;
   }
   return (
     <div className="model-options">
@@ -481,10 +481,10 @@ function ModelRow({
       {optionSummary(m.options) && <span className="model-item-sum">{optionSummary(m.options)}</span>}
       {editable && (
         <span className="model-item-actions" onClick={(e) => e.stopPropagation()}>
-          <button className={"mia-btn" + (reset ? " ok" : "")} title="Reset options" onClick={doReset}>
+          <button className={"mia-btn" + (reset ? " ok" : "")} title={t("composer.resetOptions")} onClick={doReset}>
             <Icon name={reset ? "check" : "reset"} />
           </button>
-          <button className="mia-btn" title="Edit options" onClick={() => onEdit(m.id)}>
+          <button className="mia-btn" title={t("composer.editOptions")} onClick={() => onEdit(m.id)}>
             <Icon name="edit" />
           </button>
         </span>
@@ -499,7 +499,7 @@ function HeadReset({ onReset }: { onReset: () => void }) {
   return (
     <button
       className={"mp-reset" + (ok ? " ok" : "")}
-      title="Reset to defaults"
+      title={t("app.resetDefaults")}
       onClick={() => {
         onReset();
         setOk(true);
@@ -555,7 +555,7 @@ function ModelPicker({
     const groups = new Map<string, ModelDef[]>();
     for (const m of filtered) {
       if (isLocal(m)) continue;
-      const key = m.providerName || "Other";
+      const key = m.providerName || t("model.other");
       (groups.get(key) ?? groups.set(key, []).get(key)!).push(m);
     }
     return [...groups.entries()];
@@ -563,7 +563,7 @@ function ModelPicker({
 
   const editing = editingId ? list.find((m) => m.id === editingId) || null : null;
   const selectedModel = list.find((m) => m.id === selected);
-  const selLabel = selected === "auto" ? "Auto" : selectedModel?.name || selected || "no model";
+  const selLabel = selected === "auto" ? t("composer.auto") : selectedModel?.name || selected || t("composer.noModelSelected");
   const summary = selectedModel ? optionSummary(selectedModel.options) : "";
 
   const triggerRef = React.useRef<HTMLSpanElement>(null);
@@ -595,8 +595,8 @@ function ModelPicker({
           {editing ? (
             <div className="model-picker-view">
               <div className="mp-head">
-                <button className="mp-back" title="Back" onClick={() => setEditingId(null)}>
-                  <Icon name="chevR" className="mp-back-icon" /> Back
+                <button className="mp-back" title={t("app.back")} onClick={() => setEditingId(null)}>
+                  <Icon name="chevR" className="mp-back-icon" /> {t("app.back")}
                 </button>
                 <span className="mp-head-title">{editing.name}</span>
                 <HeadReset onReset={() => onResetOptions(editing.id)} />
@@ -612,7 +612,7 @@ function ModelPicker({
                 <input
                   autoFocus
                   value={query}
-                  placeholder="Search models"
+                  placeholder={t("composer.searchModels")}
                   onChange={(e) => setQuery(e.target.value)}
                   onClick={(e) => e.stopPropagation()}
                 />
@@ -621,12 +621,12 @@ function ModelPicker({
                 {/* Auto (judge-picked model) hidden for now — bring back later.
                 <div className={"model-item auto" + (selected === "auto" ? " active" : "")} onClick={() => pick("auto")}>
                   <Icon name="infinity" className="model-item-ico" />
-                  <span className="model-item-name">Auto</span>
-                  <span className="model-item-sum">picks a model for you</span>
+                  <span className="model-item-name">{t("composer.auto")}</span>
+                  <span className="model-item-sum">{t("composer.picksModel")}</span>
                   {selected === "auto" && <Icon name="check" className="model-item-check" />}
                 </div>
                 */}
-                {filtered.length === 0 && <div className="model-item dim">No matches</div>}
+                {filtered.length === 0 && <div className="model-item dim">{t("composer.noModels")}</div>}
                 {byProvider.map(([provName, list]) => (
                   <React.Fragment key={provName}>
                     <div className="mp-group-label">{provName}</div>
@@ -977,7 +977,7 @@ export function Composer({
     const x = document.createElement("span");
     x.className = "mention-x";
     x.innerHTML = X_SVG;
-    x.title = "Remove";
+    x.title = t("app.remove");
     span.appendChild(x);
 
     const label = document.createElement("span");
@@ -1314,7 +1314,7 @@ export function Composer({
                     <Icon name="file" size={16} />
                   </div>
                 )}
-                <button className="attach-remove" onClick={() => removeAttachment(a.id)} aria-label="Remove">
+                <button className="attach-remove" onClick={() => removeAttachment(a.id)} aria-label={t("app.remove")}>
                   <Icon name="close" size={11} />
                 </button>
               </div>
@@ -1386,7 +1386,7 @@ export function Composer({
           contentEditable
           role="textbox"
           aria-multiline="true"
-          data-placeholder={isFirst ? "Plan, Build, / for skills, @ for context" : "Add a follow-up"}
+          data-placeholder={isFirst ? t("composer.placeholderFirst") : t("composer.placeholderFollowUp")}
           suppressContentEditableWarning
           onDragOver={(e) => e.preventDefault()}
           onClick={(e) => {
@@ -1559,19 +1559,19 @@ export function Composer({
             })()}
             <button
               className="attach-btn"
-              title="Attach images or files"
+              title={t("composer.attachImagesOrFiles")}
               onClick={() => fileRef.current?.click()}
             >
               <Icon name="paperclip" size={15} />
             </button>
             {editing && (
-              <button className="attach-btn" title="Cancel edit (Esc)" onClick={() => onCancelEdit?.()}>
+              <button className="attach-btn" title={t("app.cancel") + " (Esc)"} onClick={() => onCancelEdit?.()}>
                 <Icon name="close" size={15} />
               </button>
             )}
             <button
               className={"send-btn" + (showStop ? " stop" : canSend ? "" : " disabled")}
-              title={showStop ? "Stop" : editing ? "Resend" : isRunning ? "Queue message" : "Send"}
+              title={showStop ? t("app.stop") : editing ? t("composer.resend") : isRunning ? t("composer.queueMessage") : t("composer.send")}
               onClick={showStop ? onCancel : submit}
             >
               {showStop ? (

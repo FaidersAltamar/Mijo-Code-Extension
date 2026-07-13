@@ -110,7 +110,7 @@ function toolMeta(name: string, i: any): { icon: IconName; label: string; badge:
     case "SemanticSearch":
       return { icon: "search", label: t("tool.search") + " " + (i.query || ""), badge: t("tool.read"), cls: "badge-read" };
     case "SearchDocs":
-      return { icon: "book", label: t("tool.search") + " " + (i.doc ? i.doc + " docs" : "docs") + (i.query ? ' "' + i.query + '"' : ""), badge: t("tool.read"), cls: "badge-read" };
+      return { icon: "book", label: t("tool.search") + " " + (i.doc ? i.doc + " " + t("tool.docs") : t("tool.docs")) + (i.query ? ' "' + i.query + '"' : ""), badge: t("tool.read"), cls: "badge-read" };
     case "file_search":
     case "FileSearch":
       return { icon: "fileSearch", label: t("tool.find") + " " + (i.query || ""), badge: t("tool.read"), cls: "badge-read" };
@@ -181,14 +181,14 @@ function TodoList({ block }: { block: ToolBlock }) {
         <span className="ticon">
           <Icon name="todo" />
         </span>
-        <span className="label">Todos</span>
+        <span className="label">{t("tool.todos")}</span>
         <span className="right">
           <StatusIcon status={block.status} />
         </span>
       </div>
       <div className="todo-list">
         {items.length === 0 ? (
-          <div className="todo-empty">{block.status === "running" ? "Updating…" : "(no todos)"}</div>
+          <div className="todo-empty">{block.status === "running" ? t("tool.updating") : t("tool.noTodos")}</div>
         ) : (
           items.map((t, idx) => (
             <div key={idx} className={"todo-item " + t.status}>
@@ -225,10 +225,10 @@ function SubagentCard({ block, onOpen }: { block: ToolBlock; onOpen?: (callId: s
     <div className="subagent-card" onClick={() => onOpen?.(block.callId)} role="button">
       <div className="subagent-card-main">
         <span className="ticon"><Icon name="task" /></span>
-        <span className="label">{i.description || "Subagent"}</span>
+        <span className="label">{i.description || t("subagent.subagent")}</span>
         <span className="sub-spacer" />
-        <span className="sub-steps">{running ? `${steps} steps…` : `${steps} steps`}</span>
-        <span className="badge badge-agent">{isReadonlySubagent(i) ? "Explore" : "Agent"}</span>
+        <span className="sub-steps">{running ? t("subagent.stepsRunning", { steps }) : t("subagent.steps", { steps })}</span>
+        <span className="badge badge-agent">{isReadonlySubagent(i) ? t("composer.explore") : t("composer.agent")}</span>
         {running ? <span className="spinner" /> : <StatusIcon status={block.subStatus === "error" ? "error" : "completed"} />}
         <Icon name="chevR" size={14} className="sub-open-chev" />
       </div>
@@ -241,14 +241,14 @@ function SubagentCard({ block, onOpen }: { block: ToolBlock; onOpen?: (callId: s
 // most recent streamed sub-block (tool call / thinking / text).
 function subagentActivity(blocks?: AssistantBlock[]): string {
   const last = blocks && blocks.length ? blocks[blocks.length - 1] : undefined;
-  if (!last) return "Starting…";
-  if (last.kind === "thinking") return "Planning next move…";
-  if (last.kind === "text") return "Generating…";
+  if (!last) return t("subagent.starting");
+  if (last.kind === "thinking") return t("subagent.planning");
+  if (last.kind === "text") return t("subagent.generating");
   if (last.kind === "tool") {
-    const label = SUBAGENT_TOOL_ACTIVITY[last.name] || "Working…";
-    return last.status === "running" ? label : "Planning next move…";
+    const label = SUBAGENT_TOOL_ACTIVITY[last.name] || t("subagent.working");
+    return last.status === "running" ? label : t("subagent.planning");
   }
-  return "Working…";
+  return t("subagent.working");
 }
 
 const SUBAGENT_TOOL_ACTIVITY: Record<string, string> = {
@@ -273,7 +273,7 @@ const SUBAGENT_TOOL_ACTIVITY: Record<string, string> = {
 
 function PlanCard({ block, onImplement }: { block: ToolBlock; onImplement?: (path: string) => void }) {
   const i = block.input || {};
-  const title: string = i.title || "Plan";
+  const title: string = i.title || t("tool.plan");
   const content: string = i.content || "";
   // The write_plan result is "wrote plan to .plans/<file>.md".
   const planPath = (block.result || "").replace(/^wrote plan to\s+/, "").trim() || undefined;
@@ -290,7 +290,7 @@ function PlanCard({ block, onImplement }: { block: ToolBlock; onImplement?: (pat
           <Icon name="todo" />
         </span>
         <span className="plan-title">{title}</span>
-        <span className="badge badge-plan">Plan</span>
+        <span className="badge badge-plan">{t("tool.plan")}</span>
         <StatusIcon status={block.status} />
       </div>
       {open && (
@@ -298,7 +298,7 @@ function PlanCard({ block, onImplement }: { block: ToolBlock; onImplement?: (pat
           {content ? (
             <div className="markdown-content" dangerouslySetInnerHTML={{ __html: renderMarkdown(content) }} />
           ) : (
-            <div className="plan-empty">{block.status === "running" ? "Writing plan…" : "(empty plan)"}</div>
+            <div className="plan-empty">{block.status === "running" ? t("tool.writingPlan") : t("tool.emptyPlan")}</div>
           )}
         </div>
       )}
@@ -310,7 +310,7 @@ function PlanCard({ block, onImplement }: { block: ToolBlock; onImplement?: (pat
             </button>
           )}
           <button className="plan-implement" onClick={() => onImplement && onImplement(planPath || "")}>
-            <Icon name="agent" /> Implement plan
+            <Icon name="agent" /> {t("tool.implementPlan")}
           </button>
         </div>
       )}
@@ -378,7 +378,7 @@ export function ReadLine({ block }: { block: ToolBlock }) {
       <span className="ricon">
         <Icon name="file" />
       </span>
-      <span className="rname">Read {basename(i.path)}</span>
+      <span className="rname">{t("tool.readFile", { path: basename(i.path) })}</span>
       <span className="rlines">{rangeTxt ? "L" + rangeTxt : ""}</span>
       <span className="rstatus">
         <StatusIcon status={block.status} />
@@ -395,7 +395,7 @@ function optLabel(o: any): string {
 }
 
 function QuestionCard({ block }: { block: ToolBlock }) {
-  const header: string = block.input?.header || block.input?.title || "Questions";
+  const header: string = block.input?.header || block.input?.title || t("question.questions");
   const questions: QItem[] = (Array.isArray(block.input?.questions) ? block.input.questions : []).map((q: any) => ({
     question: String(q?.question ?? q?.prompt ?? ""),
     options: Array.isArray(q?.options) ? q.options.map(optLabel) : undefined,
@@ -462,7 +462,7 @@ function QuestionCard({ block }: { block: ToolBlock }) {
           return (
             <div className="qc-answered" key={i}>
               <div className="qc-q">{i + 1}. {qq.question}</div>
-              <div className="qc-a">{a.length ? a.join(", ") : "(skipped)"}</div>
+              <div className="qc-a">{a.length ? a.join(", ") : t("question.skipped")}</div>
             </div>
           );
         })}
@@ -474,7 +474,7 @@ function QuestionCard({ block }: { block: ToolBlock }) {
     <div className="question-card">
       <div className="qc-head">
         <span><Icon name="chat" size={14} /> {header}</span>
-        <span className="qc-step">{step + 1} of {questions.length}</span>
+        <span className="qc-step">{step + 1} {t("question.of")} {questions.length}</span>
       </div>
       <div className="qc-question">{step + 1}. {q.question}</div>
       {opts.map((opt, oi) => (
@@ -492,12 +492,12 @@ function QuestionCard({ block }: { block: ToolBlock }) {
         onClick={() => (customSelected ? setCustomSelected(false) : pickCustom())}
       >
         <span className="qc-key">{String.fromCharCode(65 + opts.length)}</span>
-        <span>Other…</span>
+        <span>{t("question.other")}</span>
       </button>
       {customSelected && (
         <input
           className="qc-custom"
-          placeholder="Type a custom answer…"
+          placeholder={t("question.customAnswer")}
           autoFocus
           value={customText}
           onChange={(e) => setCustom((c) => ({ ...c, [String(step)]: e.target.value }))}
@@ -507,11 +507,11 @@ function QuestionCard({ block }: { block: ToolBlock }) {
         />
       )}
       <div className="qc-foot">
-        {step > 0 && <button className="qc-nav" onClick={() => setStep((s) => s - 1)}>Back</button>}
+        {step > 0 && <button className="qc-nav" onClick={() => setStep((s) => s - 1)}>{t("app.back")}</button>}
         <span className="qc-spacer" />
-        <button className="qc-skip" onClick={() => (last ? submit() : setStep((s) => s + 1))}>Skip</button>
+        <button className="qc-skip" onClick={() => (last ? submit() : setStep((s) => s + 1))}>{t("app.skip")}</button>
         <button className="qc-next" onClick={() => (last ? submit() : advance())}>
-          {last ? "Submit" : "Continue"}
+          {last ? t("app.submit") : t("app.continue")}
         </button>
       </div>
     </div>
@@ -581,11 +581,11 @@ export function ToolCard({ block, onImplement, onOpenSubagent }: { block: ToolBl
             <Diff diff={block.diff} />
           ) : isEdit && block.status === "running" ? (
             // Stream the code as the model writes it; swapped for the diff on completion.
-            <pre className="tool-result streaming">{editPreview(block.name, i) || "Writing…"}</pre>
+            <pre className="tool-result streaming">{editPreview(block.name, i) || t("tool.writing")}</pre>
           ) : block.name === "run_terminal" || block.name === "Shell" ? (
-            <pre className="terminal-output">{block.result ?? "Running…"}</pre>
+            <pre className="terminal-output">{block.result ?? t("tool.running")}</pre>
           ) : (
-            <pre className="tool-result">{block.status === "running" ? "Running…" : (block.result || "").slice(0, 4000)}</pre>
+            <pre className="tool-result">{block.status === "running" ? t("tool.running") : (block.result || "").slice(0, 4000)}</pre>
           )}
         </div>
       )}
