@@ -929,19 +929,21 @@ export class SidebarProvider {
   }
 
   /** Context window for a model: llama.cpp ctx length, else the model's
-   *  max_context option ("200k"/"1m"…), else a safe 200k default. */
+   *  max_context option ("200k"/"1m"…), else a safe default, always capped by
+   *  the user's global ocursor.maxContextTokens setting. */
   private _contextTokensFor(modelId: string, oauthKind?: string): number {
+    const cap = this.settingsManager.getSettings().maxContextTokens;
     const f = this.featureStore.get();
     const bare = stripModelScope(modelId);
     const m = f.llamacppModels.find((x) => x.id === modelId || x.id === bare);
-    if (m) return effectiveContextLength(m, f.llamacppContextLength);
+    if (m) return Math.min(cap, effectiveContextLength(m, f.llamacppContextLength));
     const opt = this.featureStore.optionsFor(bare, oauthKind).find((o) => o.key === "max_context")?.value;
     const parsed = /^([\d.]+)\s*([km])?$/i.exec((opt || "").trim());
     if (parsed) {
       const unit = (parsed[2] || "").toLowerCase();
-      return Math.round(parseFloat(parsed[1]) * (unit === "m" ? 1_000_000 : unit === "k" ? 1_000 : 1));
+      return Math.min(cap, Math.round(parseFloat(parsed[1]) * (unit === "m" ? 1_000_000 : unit === "k" ? 1_000 : 1)));
     }
-    return 200_000; // ponytail: safe default; refine per-provider when model metadata is available
+    return cap;
   }
 
   /** Build the picker model list from ALL enabled providers. */

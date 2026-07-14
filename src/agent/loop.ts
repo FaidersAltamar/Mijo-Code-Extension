@@ -313,7 +313,7 @@ export async function runAgent(opts: RunAgentOptions): Promise<void> {
 			const liveCtx = cursorCtx
 				? { ...cursorCtx, reminder: mode === "multitask" ? MULTITASK_REMINDER : undefined }
 				: cursorCtx;
-			const messages = buildMessages(system, fitted, liveCtx);
+            const messages = buildMessages(system, fitted, liveCtx, contextTokens);
 			let assistantText = "";
 			let thinking = "";
 			let finishReason = "";

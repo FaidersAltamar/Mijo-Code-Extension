@@ -12,6 +12,7 @@ import * as vscode from "vscode";
 export interface Settings {
   model: string;
   maxResponseLength: number;
+  maxContextTokens: number;
   enableWorkspaceContext: boolean;
   enableFileReading: boolean;
   enableTerminalSuggestions: boolean;
@@ -23,6 +24,9 @@ export const DEFAULT_SETTINGS: Settings = {
   model: "",
   // 0 = don't send max_tokens; the model decides when to stop.
   maxResponseLength: 0,
+  // Hard cap on the context window used to build requests. Protects against
+  // providers that advertise large windows but reject requests above a lower limit.
+  maxContextTokens: 262_144,
   enableWorkspaceContext: true,
   enableFileReading: true,
   enableTerminalSuggestions: true,
@@ -40,6 +44,7 @@ export class SettingsManager {
     return {
       model: config.get<string>("model", DEFAULT_SETTINGS.model),
       maxResponseLength: config.get<number>("maxResponseLength", DEFAULT_SETTINGS.maxResponseLength),
+      maxContextTokens: Math.max(1024, config.get<number>("maxContextTokens", DEFAULT_SETTINGS.maxContextTokens)),
       enableWorkspaceContext: config.get<boolean>("enableWorkspaceContext", DEFAULT_SETTINGS.enableWorkspaceContext),
       enableFileReading: config.get<boolean>("enableFileReading", DEFAULT_SETTINGS.enableFileReading),
       enableTerminalSuggestions: config.get<boolean>("enableTerminalSuggestions", DEFAULT_SETTINGS.enableTerminalSuggestions),
@@ -56,6 +61,7 @@ export class SettingsManager {
     await Promise.all([
       config.update("model", settings.model, vscode.ConfigurationTarget.Global),
       config.update("maxResponseLength", settings.maxResponseLength, vscode.ConfigurationTarget.Global),
+      config.update("maxContextTokens", Math.max(1024, settings.maxContextTokens), vscode.ConfigurationTarget.Global),
       config.update("enableWorkspaceContext", settings.enableWorkspaceContext, vscode.ConfigurationTarget.Global),
       config.update("enableFileReading", settings.enableFileReading, vscode.ConfigurationTarget.Global),
       config.update("enableTerminalSuggestions", settings.enableTerminalSuggestions, vscode.ConfigurationTarget.Global),

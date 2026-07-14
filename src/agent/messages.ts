@@ -115,14 +115,32 @@ export interface CursorContextBlocks {
   reminder?: string;
 }
 
+/** Rough token count for a string (~4 chars/token). */
+function tok(s: string): number {
+  return Math.ceil(s.length / 4);
+}
+
+/** Truncate a block to roughly `maxTokens` while keeping whole lines. */
+function truncateToTokens(text: string, maxTokens: number): string {
+  if (tok(text) <= maxTokens) return text;
+  const maxChars = maxTokens * 4;
+  if (text.length <= maxChars) return text;
+  const truncated = text.slice(0, maxChars);
+  const lastNl = truncated.lastIndexOf("\n");
+  return (lastNl > 0 ? truncated.slice(0, lastNl) : truncated) + "\n\n[Context truncated to fit model context window]";
+}
+
 /**
  * Build wire messages in Cursor's shape:
  * - system as a single cached text block
  * - the CURRENT (last) user turn is split into the cached context blocks
  *   (userInfo, openFiles) followed by a cached <timestamp>+<user_query> block,
  *   matching the exact request Cursor sends.
+ *
+ * `maxContextTokens` caps the live context blocks so a single huge workspace
+ * context message cannot exceed the model's context window.
  */
-export function buildMessages(system: string, steps: Step[], ctx?: CursorContextBlocks): WireMessage[] {
+export function buildMessages(system: string, steps: Step[], ctx?: CursorContextBlocks, maxContextTokens?: number): WireMessage[] {
   const out: WireMessage[] = [
     { role: "system", content: [{ type: "text", text: system, cache_control: EPHEMERAL }] },
   ];
@@ -150,11 +168,15 @@ export function buildMessages(system: string, steps: Step[], ctx?: CursorContext
       const parts: WireContentPart[] = [];
 
       if (isLive) {
+        // Reserve tokens for system, query, images, reminder and tool history.
+        const reserved = tok(system) + tok(textContent) + (ctx!.reminder ? tok(ctx!.reminder) : 0) + images.length * 1200 + 512;
+        const contextBudget = maxContextTokens && maxContextTokens > reserved ? maxContextTokens - reserved : undefined;
+        const maxPerBlock = contextBudget ? Math.floor(contextBudget / 2) : undefined;
         if (ctx!.userInfo) {
-          parts.push({ type: "text", text: ctx!.userInfo, cache_control: EPHEMERAL });
+          parts.push({ type: "text", text: maxPerBlock ? truncateToTokens(ctx!.userInfo, maxPerBlock) : ctx!.userInfo, cache_control: EPHEMERAL });
         }
         if (ctx!.openFiles) {
-          parts.push({ type: "text", text: ctx!.openFiles, cache_control: EPHEMERAL });
+          parts.push({ type: "text", text: maxPerBlock ? truncateToTokens(ctx!.openFiles, maxPerBlock) : ctx!.openFiles, cache_control: EPHEMERAL });
         }
         parts.push({
           type: "text",

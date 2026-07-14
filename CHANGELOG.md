@@ -4,6 +4,18 @@ All notable changes to the "ocursor" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.0.8] - 2026-07-14
+
+### Added
+
+- New global setting `ocursor.maxContextTokens` (default 262,144) that caps the context window used for every model.
+- Context-block truncation in `buildMessages()` so huge workspace context never exceeds the configured cap.
+- UI control in Settings → Behavior to adjust the max context tokens cap.
+
+### Fixed
+
+- Prevent "Your request exceeded model token limit" errors when the workspace context is larger than the provider allows.
+
 ## [0.0.7] - 2026-07-14
 
 ### Changed

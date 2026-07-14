@@ -17,6 +17,7 @@ import { ModelSelect } from "../shared/ModelSelect";
 interface Settings {
   model: string;
   maxResponseLength: number;
+  maxContextTokens: number;
   enableWorkspaceContext: boolean;
   enableFileReading: boolean;
   enableTerminalSuggestions: boolean;
@@ -26,6 +27,7 @@ interface Settings {
 const DEFAULTS: Settings = {
   model: "",
   maxResponseLength: 0,
+  maxContextTokens: 262144,
   enableWorkspaceContext: true,
   enableFileReading: true,
   enableTerminalSuggestions: true,
@@ -908,6 +910,16 @@ export function App() {
                 </Row>
                 <Row title="Terminal Tools" desc="Allow running terminal commands.">
                   <Toggle checked={s.enableTerminalSuggestions} onChange={(v) => set("enableTerminalSuggestions", v)} />
+                </Row>
+                <Row title="Max Context Tokens" desc="Hard cap on context tokens sent in a request (prevents provider limit errors).">
+                  <input
+                    type="number"
+                    min={1024}
+                    step={1024}
+                    style={{ width: 120 }}
+                    value={s.maxContextTokens}
+                    onChange={(e) => set("maxContextTokens", Math.max(1024, parseInt(e.target.value, 10) || 0))}
+                  />
                 </Row>
               </Group>
 

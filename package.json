@@ -2,7 +2,7 @@
 	"name": "mijo-code",
 	"displayName": "Mijo Code",
 	"description": "Chat con agente de codificación con IA dentro de VS Code",
-	"version": "0.0.7",
+	"version": "0.0.8",
 	"publisher": "MijoCodeExtension",
 	"license": "MIT",
 	"icon": "media/icon.png",
@@ -78,6 +78,12 @@
 						"type": "integer",
 						"default": 0,
 						"description": "Longitud máxima de respuesta en tokens (0 = dejar que el modelo decida)"
+					},
+					"ocursor.maxContextTokens": {
+						"type": "integer",
+						"default": 262144,
+						"minimum": 1024,
+						"description": "Límite máximo de tokens de contexto usados para construir las peticiones (evita exceder el límite del proveedor)"
 					},
 					"ocursor.enableWorkspaceContext": {
 						"type": "boolean",
