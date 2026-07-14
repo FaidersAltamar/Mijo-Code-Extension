@@ -87,6 +87,12 @@ export function activate(context: vscode.ExtensionContext) {
     })
   );
 
+  context.subscriptions.push(
+    vscode.commands.registerCommand('ocursor.openChat', () => {
+      vscode.commands.executeCommand('ocursor.chatView.focus');
+    })
+  );
+
   // Ctrl+L: add the current selection (or file) to chat as a mention.
   context.subscriptions.push(
     vscode.commands.registerCommand('ocursor.addToChat', () => sidebarProvider.addSelectionToChat())

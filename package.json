@@ -38,6 +38,11 @@
 				"title": "Open Mijo Code Settings"
 			},
 			{
+				"command": "ocursor.openChat",
+				"title": "Open Mijo Code Chat",
+				"icon": "$(comment-discussion)"
+			},
+			{
 				"command": "ocursor.addToChat",
 				"title": "Mijo Code: Add Selection to Chat"
 			}
@@ -51,7 +56,7 @@
 			}
 		],
 		"viewsContainers": {
-			"activitybar": [
+			"auxiliaryBar": [
 				{
 					"id": "ocursor-sidebar",
 					"title": "Mijo Code",
