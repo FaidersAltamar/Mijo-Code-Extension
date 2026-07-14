@@ -2,7 +2,7 @@
 	"name": "mijo-code",
 	"displayName": "Mijo Code",
 	"description": "AI coding agent chat inside VS Code",
-	"version": "0.0.3",
+	"version": "0.0.5",
 	"publisher": "MijoCodeExtension",
 	"license": "MIT",
 	"icon": "media/icon.png",
@@ -30,6 +30,7 @@
 		"assistant"
 	],
 	"activationEvents": [
+		"onStartupFinished",
 		"onCommand:ocursor.openChat",
 		"onCommand:ocursor.addToChat",
 		"onCommand:ocursor.openSettings"

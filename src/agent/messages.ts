@@ -203,6 +203,48 @@ export function buildMessages(system: string, steps: Step[], ctx?: CursorContext
       }
     }
   }
+  return repairToolCallResponses(out);
+}
+
+/**
+ * OpenAI (and several compatible servers) reject any assistant message that
+ * declares `tool_calls` unless every `tool_call_id` is followed by a matching
+ * `role: "tool"` message. History can become inconsistent if a run is cancelled
+ * or errors after the assistant announced calls but before the tool results were
+ * pushed. This helper backfills synthetic error responses for any missing ids
+ * so the request is always valid.
+ */
+function repairToolCallResponses(messages: WireMessage[]): WireMessage[] {
+  const out: WireMessage[] = [];
+  for (let i = 0; i < messages.length; i++) {
+    const m = messages[i];
+    out.push(m);
+    if (m.role !== "assistant" || !m.tool_calls?.length) continue;
+
+    // Collect tool_call_ids that appear in messages immediately after this assistant.
+    const expected = new Set(m.tool_calls.map((tc) => tc.id));
+    const seen = new Set<string>();
+    for (let j = i + 1; j < messages.length; j++) {
+      const next = messages[j];
+      if (next.role === "tool") {
+        seen.add(next.tool_call_id);
+        continue;
+      }
+      // Stop scanning at the next assistant/user/system message; tool responses
+      // must directly follow the assistant call declaration.
+      if (next.role === "assistant" || next.role === "user" || next.role === "system") break;
+    }
+
+    for (const id of expected) {
+      if (!seen.has(id)) {
+        out.push({
+          role: "tool",
+          tool_call_id: id,
+          content: "error: tool execution was interrupted before a result was produced",
+        });
+      }
+    }
+  }
   return out;
 }
 

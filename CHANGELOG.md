@@ -4,6 +4,29 @@ All notable changes to the "ocursor" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.0.5] - 2026-07-14
+
+### Fixed
+
+- OpenAI-compatible providers no longer error with "tool_call_ids did not have response messages" when a run is cancelled or errors between a tool call announcement and its result; missing tool responses are backfilled with a synthetic error message.
+
+## [0.0.4] - 2026-07-13
+
+### Added
+
+- `onStartupFinished` activation so the extension loads automatically with the editor
+- Robust error logging during activation (Output → Mijo Code)
+
+### Changed
+
+- Chat moved from sidebar to an editor panel (`ViewColumn.Two`) for more screen space
+- Added status-bar button `$(comment-discussion) Mijo Code` to open chat
+- `Ctrl+Alt+M` / `Cmd+Alt+M` keybinding to open Mijo Code Chat
+
+### Fixed
+
+- Activation failures now surface visible error messages and detailed logs
+
 ## [0.0.2] - 2026-07-05
 
 ### Added
