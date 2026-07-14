@@ -4,6 +4,13 @@ All notable changes to the "ocursor" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.0.6] - 2026-07-14
+
+### Fixed
+
+- Skip empty assistant history steps (no content and no tool calls) before sending requests to OpenAI-compatible providers, preventing "the message ... with role 'assistant' must not be empty" errors.
+- Do not record empty assistant turns in the agent loop when the model returns no text and no calls.
+
 ## [0.0.5] - 2026-07-14
 
 ### Fixed

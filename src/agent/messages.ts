@@ -175,8 +175,12 @@ export function buildMessages(system: string, steps: Step[], ctx?: CursorContext
         out.push({ role: "user", content: textContent });
       }
     } else if (s.kind === "assistant") {
-      const msg: WireMessage = { role: "assistant", content: s.text || null };
-      if (s.calls && s.calls.length) {
+      const hasCalls = s.calls && s.calls.length > 0;
+      const text = s.text?.trim();
+      // OpenAI rejects assistant messages with neither content nor tool_calls.
+      if (!text && !hasCalls) continue;
+      const msg: WireMessage = { role: "assistant", content: text || null };
+      if (hasCalls) {
         msg.tool_calls = s.calls.map((c) => ({
           id: c.id,
           type: "function",

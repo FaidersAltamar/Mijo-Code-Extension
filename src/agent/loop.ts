@@ -370,7 +370,7 @@ export async function runAgent(opts: RunAgentOptions): Promise<void> {
 				}
 			}
 
-			if (assistantText || thinking || !calls.length) {
+			if (assistantText.trim() || thinking) {
 				history.push({ kind: "assistant", text: assistantText, thinking: thinking || undefined, calls: [] });
 			}
 
