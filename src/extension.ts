@@ -95,7 +95,7 @@ export function activate(context: vscode.ExtensionContext) {
     // Status bar item so users always have a visible button to open the chat.
     const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
     statusBarItem.text = "$(comment-discussion) Mijo Code";
-    statusBarItem.tooltip = "Open Mijo Code Chat";
+    statusBarItem.tooltip = "Abrir chat de Mijo Code";
     statusBarItem.command = 'ocursor.openChat';
     statusBarItem.show();
     context.subscriptions.push(statusBarItem);
@@ -113,7 +113,7 @@ export function activate(context: vscode.ExtensionContext) {
     const message = err?.message || String(err);
     log.appendLine(`[Mijo Code] activate() FAILED: ${message}`);
     log.appendLine(err?.stack || '');
-    vscode.window.showErrorMessage(`Mijo Code failed to activate: ${message}. Open Output → Mijo Code for details.`);
+    vscode.window.showErrorMessage(`Error al activar Mijo Code: ${message}. Abre Salida → Mijo Code para más detalles.`);
     throw err;
   }
 }

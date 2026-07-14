@@ -221,7 +221,7 @@ export function checkInstalled(): Promise<boolean> {
 
 /** Install llama.cpp via the platform package manager (winget / curl script). */
 export async function installLlamacpp(): Promise<void> {
-  const term = vscode.window.createTerminal("Install llama.cpp");
+  const term = vscode.window.createTerminal("Instalar llama.cpp");
   term.show();
   if (process.platform === "win32") {
     term.sendText("irm https://llama.app/install.ps1 | iex");
@@ -231,7 +231,7 @@ export async function installLlamacpp(): Promise<void> {
     term.sendText("curl -LsSf https://llama.app/install.sh | sh");
   }
   vscode.window.showInformationMessage(
-    "Mijo Code: Installing llama.cpp in the terminal. Re-check status once it finishes."
+    "Mijo Code: Instalando llama.cpp en la terminal. Vuelve a verificar el estado cuando termine."
   );
 }
 
@@ -527,8 +527,8 @@ export function disposeLlamacpp(): void {
 export async function pickLocalGguf(): Promise<string | undefined> {
   const uris = await vscode.window.showOpenDialog({
     canSelectMany: false,
-    filters: { "GGUF model": ["gguf"] },
-    openLabel: "Import GGUF",
+    filters: { "Modelo GGUF": ["gguf"] },
+    openLabel: "Importar GGUF",
     defaultUri: vscode.Uri.file(os.homedir()),
   });
   return uris?.[0]?.fsPath;

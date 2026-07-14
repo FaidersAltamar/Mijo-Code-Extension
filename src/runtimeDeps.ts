@@ -190,7 +190,7 @@ async function install(dir: string): Promise<void> {
   } catch { /* not installed yet */ }
 
   await vscode.window.withProgress(
-    { location: vscode.ProgressLocation.Notification, title: "Mijo Code: downloading local AI runtime (one-time)" },
+    { location: vscode.ProgressLocation.Notification, title: "Mijo Code: descargando runtime local de IA (una vez)" },
     async (progress) => {
       const tree = await resolveTree();
       const nm = path.join(dir, "node_modules");
@@ -245,7 +245,7 @@ export function ensureRuntimeDeps(): Promise<boolean> {
       } catch (e: any) {
         readyP = null; // allow retry on next call
         console.error("[runtimeDeps] install failed:", e);
-        vscode.window.showErrorMessage(`Mijo Code: failed to download AI runtime: ${e?.message || e}`);
+        vscode.window.showErrorMessage(`Mijo Code: error al descargar el runtime de IA: ${e?.message || e}`);
         return false;
       }
     })();

@@ -1,8 +1,8 @@
 {
 	"name": "mijo-code",
 	"displayName": "Mijo Code",
-	"description": "AI coding agent chat inside VS Code",
-	"version": "0.0.6",
+	"description": "Chat con agente de codificación con IA dentro de VS Code",
+	"version": "0.0.7",
 	"publisher": "MijoCodeExtension",
 	"license": "MIT",
 	"icon": "media/icon.png",
@@ -40,16 +40,16 @@
 		"commands": [
 			{
 				"command": "ocursor.openSettings",
-				"title": "Open Mijo Code Settings"
+				"title": "Abrir configuración de Mijo Code"
 			},
 			{
 				"command": "ocursor.openChat",
-				"title": "Open Mijo Code Chat",
+				"title": "Abrir chat de Mijo Code",
 				"icon": "$(comment-discussion)"
 			},
 			{
 				"command": "ocursor.addToChat",
-				"title": "Mijo Code: Add Selection to Chat"
+				"title": "Mijo Code: Añadir selección al chat"
 			}
 		],
 		"keybindings": [
@@ -67,44 +67,44 @@
 		],
 		"configuration": [
 			{
-				"title": "Mijo Code Settings",
+				"title": "Configuración de Mijo Code",
 				"properties": {
 					"ocursor.model": {
 						"type": "string",
 						"default": "auto",
-						"description": "The AI model to use"
+						"description": "El modelo de IA a usar"
 					},
 					"ocursor.maxResponseLength": {
 						"type": "integer",
 						"default": 0,
-						"description": "Maximum response length in tokens (0 = let the model decide)"
+						"description": "Longitud máxima de respuesta en tokens (0 = dejar que el modelo decida)"
 					},
 					"ocursor.enableWorkspaceContext": {
 						"type": "boolean",
 						"default": true,
-						"description": "Enable workspace context for the AI agent"
+						"description": "Habilitar contexto del workspace para el agente de IA"
 					},
 					"ocursor.enableFileReading": {
 						"type": "boolean",
 						"default": true,
-						"description": "Enable file reading/glob/grep tools"
+						"description": "Habilitar herramientas de lectura/glob/búsqueda de archivos"
 					},
 					"ocursor.enableTerminalSuggestions": {
 						"type": "boolean",
 						"default": true,
-						"description": "Enable run terminal command suggestions tool"
+						"description": "Habilitar herramienta de sugerencias de comandos de terminal"
 					},
 					"ocursor.systemPrompt": {
 						"type": "string",
 						"default": "You are a professional coding assistant extension named Mijo Code.",
-						"description": "System prompt or custom instruction field"
+						"description": "Campo de instrucción personalizada o system prompt"
 					},
 					"ocursor.language": {
 						"type": "string",
 						"default": "es",
 						"enum": ["en", "es"],
 						"enumDescriptions": ["English", "Español"],
-						"description": "Language for the extension UI"
+						"description": "Idioma de la interfaz de la extensión"
 					}
 				}
 			}

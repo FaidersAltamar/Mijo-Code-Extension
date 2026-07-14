@@ -4,6 +4,13 @@ All notable changes to the "ocursor" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.0.7] - 2026-07-14
+
+### Changed
+
+- Translated remaining user-facing English strings in VS Code commands, settings descriptions, notifications, dialogs, and extension host messages to Spanish.
+- Left AI-facing system prompts and tool outputs in English for best model performance.
+
 ## [0.0.6] - 2026-07-14
 
 ### Fixed

@@ -33,7 +33,7 @@ export interface EmbedModel {
   dim: number;
 }
 export const EMBED_MODELS: EmbedModel[] = [
-  { id: "minilm", name: "all-MiniLM-L6-v2 (fast, default)", repo: "Xenova/all-MiniLM-L6-v2", dtype: "q8", pooling: "mean", dim: 384 },
+  { id: "minilm", name: "all-MiniLM-L6-v2 (rápido, por defecto)", repo: "Xenova/all-MiniLM-L6-v2", dtype: "q8", pooling: "mean", dim: 384 },
 ];
 
 let activeModel: EmbedModel = EMBED_MODELS[0];

@@ -122,7 +122,7 @@ export async function searchCode(query: string, limit = 10): Promise<MentionItem
 }
 
 export function branchDiffItem(): MentionItem {
-  return { kind: "branch_diff", path: "branch_diff", name: "Branch (Diff with Main)", detail: "git diff main...HEAD" };
+  return { kind: "branch_diff", path: "branch_diff", name: "Rama (Diff con Main)", detail: "git diff main...HEAD" };
 }
 
 // ---- Resolution (mention → context block) ----

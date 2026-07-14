@@ -89,7 +89,7 @@ export class ConversationStore {
     const now = Date.now();
     const conv: Conversation = {
       id: `c_${now}_${Math.random().toString(36).slice(2, 8)}`,
-      title: "New Chat",
+      title: "Nuevo chat",
       createdAt: now,
       updatedAt: now,
       steps: [],

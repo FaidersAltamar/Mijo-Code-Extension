@@ -122,7 +122,7 @@ export class SidebarProvider {
 
     const panel = vscode.window.createWebviewPanel(
       SidebarProvider.viewType,
-      "Mijo Code Chat",
+      "Chat de Mijo Code",
       vscode.ViewColumn.Two,
       {
         enableScripts: true,
@@ -217,11 +217,11 @@ export class SidebarProvider {
           const safe = (conv.title || "conversation").replace(/[^\w-]+/g, "_").slice(0, 60);
           const target = await vscode.window.showSaveDialog({
             defaultUri: vscode.Uri.joinPath(vscode.workspace.workspaceFolders?.[0]?.uri ?? vscode.Uri.file(process.cwd()), `${safe}.json`),
-            filters: { JSON: ["json"] },
+            filters: { "Archivo JSON": ["json"] },
           });
           if (!target) break;
           await vscode.workspace.fs.writeFile(target, Buffer.from(JSON.stringify(conv, null, 2), "utf8"));
-          vscode.window.showInformationMessage(`Exported conversation to ${target.fsPath}`);
+          vscode.window.showInformationMessage(`Conversación exportada a ${target.fsPath}`);
           break;
         }
         case "newConversation":
@@ -382,10 +382,10 @@ export class SidebarProvider {
         "vscode.diff",
         beforeUri,
         fileUri,
-        `${relPath.split(/[\\/]/).pop()} (changes)`
+        `${relPath.split(/[\\/]/).pop()} (cambios)`
       );
     } catch (err: any) {
-      vscode.window.showErrorMessage(`Mijo Code: Could not show diff: ${err?.message}`);
+      vscode.window.showErrorMessage(`Mijo Code: No se pudo mostrar la diferencia: ${err?.message}`);
     }
   }
 
@@ -480,7 +480,7 @@ export class SidebarProvider {
         }
         case "terminal": {
           const t = vscode.window.terminals.find((t) => t.name === p);
-          t ? t.show() : vscode.window.showWarningMessage(`Mijo Code: terminal "${p}" not found`);
+          t ? t.show() : vscode.window.showWarningMessage(`Mijo Code: terminal "${p}" no encontrada`);
           break;
         }
         case "rule":
@@ -545,7 +545,7 @@ export class SidebarProvider {
         editor.revealRange(range, vscode.TextEditorRevealType.InCenter);
       }
     } catch (err: any) {
-      vscode.window.showErrorMessage(`Mijo Code: Could not open ${relPath}: ${err.message}`);
+      vscode.window.showErrorMessage(`Mijo Code: No se pudo abrir ${relPath}: ${err.message}`);
     }
   }
 
@@ -1126,8 +1126,8 @@ export class SidebarProvider {
   private async _browseAttachments() {
     const uris = await vscode.window.showOpenDialog({
       canSelectMany: true,
-      openLabel: "Attach",
-      filters: { Attachments: ["png", "jpg", "jpeg", "gif", "webp", "txt", "md", "json", "ts", "tsx", "js", "jsx", "py", "css", "html"] },
+      openLabel: "Adjuntar",
+      filters: { Adjuntos: ["png", "jpg", "jpeg", "gif", "webp", "txt", "md", "json", "ts", "tsx", "js", "jsx", "py", "css", "html"] },
     });
     if (!uris || uris.length === 0) {
       return;
@@ -1161,7 +1161,7 @@ export class SidebarProvider {
     edit?: { fromIndex?: number; model?: string; mode?: string; revertFiles?: boolean },
   ) {
     if (!text.trim() && (!attachments || attachments.length === 0)) {
-      vscode.window.showWarningMessage("Mijo Code: Message cannot be empty");
+      vscode.window.showWarningMessage("Mijo Code: El mensaje no puede estar vacío");
       return;
     }
 
@@ -1212,10 +1212,10 @@ export class SidebarProvider {
     const apiKey = prov.apiKey;
 
     if (!apiKey && prov.anthropic) {
-      vscode.window.showErrorMessage("Mijo Code: Missing API key. Please open settings to add one.");
+      vscode.window.showErrorMessage("Mijo Code: Falta la clave API. Abre la configuración para añadir una.");
       this._view?.webview.postMessage({
         type: "error",
-        message: "Missing API Key. Provide it in Settings.",
+        message: "Falta la clave API. Proporciónala en Configuración.",
       });
       return;
     }
@@ -1239,13 +1239,13 @@ export class SidebarProvider {
         await new Promise((r) => setTimeout(r, 50));
       }
       if (this._sessions.has(convId)) {
-        vscode.window.showWarningMessage("Mijo Code: This chat is already running.");
+        vscode.window.showWarningMessage("Mijo Code: Este chat ya está en ejecución.");
         return;
       }
     }
     const isFirstMessage = (this._store.get(convId)?.steps.length ?? 0) === 0;
     if (isFirstMessage) {
-      const fallback = text.trim() ? titleFromText(renderMentionTokens(text)) : attachments?.length ? `${attachments.length} attachment(s)` : "New chat";
+      const fallback = text.trim() ? titleFromText(renderMentionTokens(text)) : attachments?.length ? `${attachments.length} adjunto(s)` : "Nuevo chat";
       await this._store.update(convId, { title: fallback });
     }
     const history = this._store.get(convId)?.steps ?? [];
@@ -1273,7 +1273,7 @@ export class SidebarProvider {
       const veto = await runBlockingHooks(features.hooks, "beforeSubmit", { prompt: text });
       if (veto) {
         this._sessions.delete(convId);
-        vscode.window.showWarningMessage(`Mijo Code: prompt blocked by hook — ${veto}`);
+        vscode.window.showWarningMessage(`Mijo Code: indicación bloqueada por hook — ${veto}`);
         return;
       }
     }
@@ -1295,8 +1295,8 @@ export class SidebarProvider {
         }
         // OS notification when a run completes while the window is unfocused.
         if (ev.status === "finished" && features.notifyOnComplete !== false && !vscode.window.state.focused) {
-          vscode.window.showInformationMessage("Mijo Code: Agent finished responding.");
-          runHooks(features.hooks, "notification", { message: "Agent finished responding." });
+          vscode.window.showInformationMessage("Mijo Code: El agente terminó de responder.");
+          runHooks(features.hooks, "notification", { message: "El agente terminó de responder." });
         }
       } else if (ev.type === "usage") {
         // Persist cumulative per-model token usage (Usage & Quota page).
@@ -1324,11 +1324,11 @@ export class SidebarProvider {
       const local = this._localModel(modelId);
       if (local) {
         if (!isRunning(local.id)) {
-          emit({ type: "shell-notify", message: `Loading ${local.name}…` });
+          emit({ type: "shell-notify", message: `Cargando ${local.name}…` });
           try {
             await ensureLoaded(local, features.llamacppConfig);
           } catch (e: any) {
-            emit({ type: "error", message: `Failed to load ${local.name}: ${e?.message || e}` });
+            emit({ type: "error", message: `Error al cargar ${local.name}: ${e?.message || e}` });
             emit({ type: "run-status", status: "error" });
             return; // `finally` clears the session + persists.
           }
@@ -1389,7 +1389,7 @@ export class SidebarProvider {
       });
     } catch (err: any) {
       SidebarProvider.log.appendLine(`[${new Date().toISOString()}] [run] ${err?.stack || err?.message || err}`);
-      vscode.window.showErrorMessage(`Mijo Code: Connection failed: ${err.message}`);
+      vscode.window.showErrorMessage(`Mijo Code: Conexión fallida: ${err.message}`);
       emit({ type: "error", message: err.message } as AgentEvent);
     } finally {
       if (session.persistTimer) { clearTimeout(session.persistTimer); session.persistTimer = undefined; }

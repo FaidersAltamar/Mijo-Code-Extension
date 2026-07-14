@@ -45,7 +45,7 @@ export class SettingsPanel {
 
     const panel = vscode.window.createWebviewPanel(
       SettingsPanel.viewType,
-      "Mijo Code Settings",
+      "Configuración de Mijo Code",
       column || vscode.ViewColumn.One,
       {
         enableScripts: true,
@@ -131,10 +131,10 @@ export class SettingsPanel {
                 }
               }
               this.featureStore.notifyChanged();
-              vscode.window.showInformationMessage("Mijo Code: Settings saved successfully.");
+              vscode.window.showInformationMessage("Mijo Code: Configuración guardada correctamente.");
               this._panel.webview.postMessage({ type: "saveSuccess" });
             } catch (err: any) {
-              vscode.window.showErrorMessage(`Mijo Code: Failed to save settings: ${err.message}`);
+              vscode.window.showErrorMessage(`Mijo Code: Error al guardar la configuración: ${err.message}`);
             }
             break;
           case "fetchModels":
@@ -153,14 +153,14 @@ export class SettingsPanel {
               const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(String(message.path)));
               await vscode.window.showTextDocument(doc, { preview: false });
             } catch (e: any) {
-              vscode.window.showErrorMessage(`Mijo Code: could not open file: ${e?.message || e}`);
+              vscode.window.showErrorMessage(`Mijo Code: no se pudo abrir el archivo: ${e?.message || e}`);
             }
             break;
           }
           case "createRule": {
             const root = getWorkspaceRoot();
-            if (!root) { vscode.window.showErrorMessage("Mijo Code: open a workspace first."); break; }
-            const name = await vscode.window.showInputBox({ prompt: "Rule name", placeHolder: "my-rule" });
+            if (!root) { vscode.window.showErrorMessage("Mijo Code: abre primero un workspace."); break; }
+            const name = await vscode.window.showInputBox({ prompt: "Nombre de la regla", placeHolder: "mi-regla" });
             if (!name) break;
             const slug = name.trim().toLowerCase().replace(/[^a-z0-9-_]+/g, "-").replace(/^-+|-+$/g, "") || "rule";
             const dir = vscode.Uri.file(`${root}/.cursor/rules`);
@@ -169,7 +169,7 @@ export class SettingsPanel {
             try {
               await vscode.workspace.fs.stat(file); // exists → just open
             } catch {
-              const tpl = `---\ndescription: \nglobs: \nalwaysApply: false\n---\n\n# ${name.trim()}\n\nWrite the rule content here.\n`;
+              const tpl = `---\ndescription: \nglobs: \nalwaysApply: false\n---\n\n# ${name.trim()}\n\nEscribe aquí el contenido de la regla.\n`;
               await vscode.workspace.fs.writeFile(file, Buffer.from(tpl, "utf8"));
             }
             await vscode.window.showTextDocument(await vscode.workspace.openTextDocument(file), { preview: false });
@@ -178,8 +178,8 @@ export class SettingsPanel {
           }
           case "createSkill": {
             const root = getWorkspaceRoot();
-            if (!root) { vscode.window.showErrorMessage("Mijo Code: open a workspace first."); break; }
-            const name = await vscode.window.showInputBox({ prompt: "Skill name", placeHolder: "my-skill" });
+            if (!root) { vscode.window.showErrorMessage("Mijo Code: abre primero un workspace."); break; }
+            const name = await vscode.window.showInputBox({ prompt: "Nombre de la skill", placeHolder: "mi-skill" });
             if (!name) break;
             const slug = name.trim().toLowerCase().replace(/[^a-z0-9-_]+/g, "-").replace(/^-+|-+$/g, "") || "skill";
             const dir = vscode.Uri.file(`${root}/.cursor/skills/${slug}`);
@@ -188,7 +188,7 @@ export class SettingsPanel {
             try {
               await vscode.workspace.fs.stat(file);
             } catch {
-              const tpl = `---\ndescription: Describe when the agent should use this skill.\n---\n\n# ${name.trim()}\n\nInstructions for the agent.\n`;
+              const tpl = `---\ndescription: Describe cuándo debería usar esta skill el agente.\n---\n\n# ${name.trim()}\n\nInstrucciones para el agente.\n`;
               await vscode.workspace.fs.writeFile(file, Buffer.from(tpl, "utf8"));
             }
             await vscode.window.showTextDocument(await vscode.workspace.openTextDocument(file), { preview: false });
@@ -196,25 +196,25 @@ export class SettingsPanel {
             break;
           }
           case "deleteRule": {
-            const ok = await vscode.window.showWarningMessage(`Delete rule "${message.name}"?`, { modal: true }, "Delete");
-            if (ok !== "Delete") break;
+            const ok = await vscode.window.showWarningMessage(`¿Eliminar regla "${message.name}"?`, { modal: true }, "Eliminar");
+            if (ok !== "Eliminar") break;
             try {
               await vscode.workspace.fs.delete(vscode.Uri.file(String(message.path)), { useTrash: true });
             } catch (e: any) {
-              vscode.window.showErrorMessage(`Mijo Code: could not delete rule: ${e?.message || e}`);
+              vscode.window.showErrorMessage(`Mijo Code: no se pudo eliminar la regla: ${e?.message || e}`);
             }
             await this._sendFeatures();
             break;
           }
           case "deleteSkill": {
-            const ok = await vscode.window.showWarningMessage(`Delete skill "${message.name}"?`, { modal: true }, "Delete");
-            if (ok !== "Delete") break;
+            const ok = await vscode.window.showWarningMessage(`¿Eliminar skill "${message.name}"?`, { modal: true }, "Eliminar");
+            if (ok !== "Eliminar") break;
             try {
               // message.path points at SKILL.md — delete the whole skill folder.
               const dir = vscode.Uri.joinPath(vscode.Uri.file(String(message.path)), "..");
               await vscode.workspace.fs.delete(dir, { recursive: true, useTrash: true });
             } catch (e: any) {
-              vscode.window.showErrorMessage(`Mijo Code: could not delete skill: ${e?.message || e}`);
+              vscode.window.showErrorMessage(`Mijo Code: no se pudo eliminar la skill: ${e?.message || e}`);
             }
             await this._sendFeatures();
             break;
@@ -574,11 +574,11 @@ export class SettingsPanel {
    */
   private async _resetStorage() {
     const confirm = await vscode.window.showWarningMessage(
-      "Reset ALL Mijo Code storage (settings, API keys, providers, conversations, models, MCP servers)?",
+      "¿Restablecer TODO el almacenamiento de Mijo Code (configuración, claves API, proveedores, conversaciones, modelos, servidores MCP)?",
       { modal: true },
-      "Reset"
+      "Restablecer"
     );
-    if (confirm !== "Reset") return;
+    if (confirm !== "Restablecer") return;
 
     // Delete provider API keys (need ids before clearing globalState) + the main key.
     const features = this.featureStore.get();
