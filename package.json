@@ -53,6 +53,11 @@
 		],
 		"keybindings": [
 			{
+				"command": "ocursor.openChat",
+				"key": "ctrl+alt+m",
+				"mac": "cmd+alt+m"
+			},
+			{
 				"command": "ocursor.addToChat",
 				"key": "ctrl+l",
 				"mac": "cmd+l",
