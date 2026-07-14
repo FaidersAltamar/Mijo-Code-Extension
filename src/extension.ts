@@ -89,6 +89,14 @@ export function activate(context: vscode.ExtensionContext) {
     })
   );
 
+  // Status bar item so users always have a visible button to open the chat.
+  const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
+  statusBarItem.text = "$(comment-discussion) Mijo Code";
+  statusBarItem.tooltip = "Open Mijo Code Chat";
+  statusBarItem.command = 'ocursor.openChat';
+  statusBarItem.show();
+  context.subscriptions.push(statusBarItem);
+
   // Ctrl+L: add the current selection (or file) to chat as a mention.
   context.subscriptions.push(
     vscode.commands.registerCommand('ocursor.addToChat', () => sidebarProvider.addSelectionToChat())
