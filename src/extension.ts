@@ -64,10 +64,6 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(SidebarProvider.log);
 
   const sidebarProvider = new SidebarProvider(context, settingsManager, featureStore);
-  context.subscriptions.push(
-    vscode.window.registerWebviewViewProvider(SidebarProvider.viewType, sidebarProvider)
-
-  );
 
   // Virtual-doc provider serving the "before" side of agent-edit diffs.
   context.subscriptions.push(
@@ -89,7 +85,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     vscode.commands.registerCommand('ocursor.openChat', () => {
-      vscode.commands.executeCommand('ocursor.chatView.focus');
+      sidebarProvider.createOrShow();
     })
   );
 

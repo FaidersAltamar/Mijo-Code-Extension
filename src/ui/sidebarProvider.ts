@@ -33,9 +33,9 @@ import {
   searchRules, searchCode, branchDiffItem, resolveMentions, type MentionItem as HostMentionItem,
 } from "../context/mentions";
 
-export class SidebarProvider implements vscode.WebviewViewProvider {
+export class SidebarProvider {
   public static readonly viewType = "ocursor.chatView";
-  private _view?: vscode.WebviewView;
+  private _view?: vscode.WebviewView | vscode.WebviewPanel;
   /** One independent agent run per conversation, so chats run concurrently. */
   private _sessions = new Map<string, RunSession>();
   private _currentMode: Mode = "agent";
@@ -109,25 +109,40 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           name: `${rel.split("/").pop()}:${sel.start.line + 1}-${sel.end.line + 1}`,
           detail: rel,
         };
-    vscode.commands.executeCommand("ocursor.chatView.focus").then(() => {
-      // Small delay so a freshly-created webview is ready to receive it.
-      setTimeout(() => this._view?.webview.postMessage({ type: "insertMention", mention }), 100);
-    });
+    this.createOrShow();
+    // Small delay so a freshly-created webview is ready to receive it.
+    setTimeout(() => this._view?.webview.postMessage({ type: "insertMention", mention }), 100);
   }
 
-  public resolveWebviewView(
-    webviewView: vscode.WebviewView,
-    _context: vscode.WebviewViewResolveContext,
-    _token: vscode.CancellationToken
-  ) {
-    this._view = webviewView;
+  public createOrShow(): vscode.WebviewPanel {
+    if (this._view) {
+      (this._view as vscode.WebviewPanel).reveal(vscode.ViewColumn.Two);
+      return this._view as vscode.WebviewPanel;
+    }
 
-    webviewView.webview.options = {
+    const panel = vscode.window.createWebviewPanel(
+      SidebarProvider.viewType,
+      "Mijo Code Chat",
+      vscode.ViewColumn.Two,
+      {
+        enableScripts: true,
+        localResourceRoots: [this.context.extensionUri],
+      }
+    );
+    panel.iconPath = vscode.Uri.joinPath(this.context.extensionUri, "media", "icon.png");
+    this._bind(panel);
+    return panel;
+  }
+
+  private _bind(panel: vscode.WebviewPanel): void {
+    this._view = panel;
+
+    panel.webview.options = {
       enableScripts: true,
       localResourceRoots: [this.context.extensionUri],
     };
 
-    webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
+    panel.webview.html = this._getHtmlForWebview(panel.webview);
 
     // Keep the webview's pending-changes bar in sync with the store.
     const sub = pendingChanges.onChange(() => this._sendPendingChanges());
@@ -145,14 +160,22 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
     const iconSub = vscode.workspace.onDidChangeConfiguration((e) => {
       if (e.affectsConfiguration("workbench.iconTheme")) invalidateFileIconCache();
     });
-    webviewView.onDidDispose(() => {
+    const disposables: vscode.Disposable[] = [];
+
+    const disposeListener = panel.onDidDispose(() => {
       sub();
       cfgSub.dispose();
       oauthSub.dispose();
       iconSub.dispose();
+      for (const d of disposables) {
+        d.dispose();
+      }
+      disposeListener.dispose();
+      this._view = undefined;
     });
 
-    webviewView.webview.onDidReceiveMessage(async (data) => {
+    disposables.push(
+      panel.webview.onDidReceiveMessage(async (data) => {
       switch (data.type) {
         case "ready":
           await this._sendInitialState();
@@ -321,7 +344,8 @@ export class SidebarProvider implements vscode.WebviewViewProvider {
           SidebarProvider.log.show(true);
           break;
       }
-    });
+    })
+    );
   }
 
   private _sendPendingChanges() {

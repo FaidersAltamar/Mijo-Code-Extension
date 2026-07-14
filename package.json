@@ -29,7 +29,11 @@
 		"copilot",
 		"assistant"
 	],
-	"activationEvents": [],
+	"activationEvents": [
+		"onCommand:ocursor.openChat",
+		"onCommand:ocursor.addToChat",
+		"onCommand:ocursor.openSettings"
+	],
 	"main": "./dist/extension.js",
 	"contributes": {
 		"commands": [
@@ -55,24 +59,6 @@
 				"when": "editorTextFocus"
 			}
 		],
-		"viewsContainers": {
-			"auxiliaryBar": [
-				{
-					"id": "ocursor-sidebar",
-					"title": "Mijo Code",
-					"icon": "media/icon.svg"
-				}
-			]
-		},
-		"views": {
-			"ocursor-sidebar": [
-				{
-					"type": "webview",
-					"id": "ocursor.chatView",
-					"name": "Mijo Code"
-				}
-			]
-		},
 		"configuration": [
 			{
 				"title": "Mijo Code Settings",
