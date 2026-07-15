@@ -275,7 +275,7 @@ export async function runAgent(opts: RunAgentOptions): Promise<void> {
 
 			// Auto context management. Budget = window minus the reply reservation.
 			const budget = contextTokens && contextTokens > 0
-				? Math.max(1024, contextTokens - (maxTokens ?? 4096) - 1024)
+				? Math.max(1024, contextTokens - (maxTokens ?? 4096) - 2048)
 				: 0;
 			// 1) Auto-summarization (Cursor/Claude-Code style): when the conversation
 			// nears the window (80% of budget), replace the older steps with an
@@ -313,7 +313,11 @@ export async function runAgent(opts: RunAgentOptions): Promise<void> {
 			const liveCtx = cursorCtx
 				? { ...cursorCtx, reminder: mode === "multitask" ? MULTITASK_REMINDER : undefined }
 				: cursorCtx;
-            const messages = buildMessages(system, fitted, liveCtx, contextTokens);
+            // Cap prompt tokens so the response (maxTokens) fits inside the model's context window.
+            const promptTokenCap = contextTokens && contextTokens > 0
+              ? Math.max(1024, contextTokens - (maxTokens ?? 4096) - 2048)
+              : undefined;
+            const messages = buildMessages(system, fitted, liveCtx, promptTokenCap);
 			let assistantText = "";
 			let thinking = "";
 			let finishReason = "";

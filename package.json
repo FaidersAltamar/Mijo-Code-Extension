@@ -2,7 +2,7 @@
 	"name": "mijo-code",
 	"displayName": "Mijo Code",
 	"description": "Chat con agente de codificación con IA dentro de VS Code",
-	"version": "0.0.8",
+	"version": "0.0.9",
 	"publisher": "MijoCodeExtension",
 	"license": "MIT",
 	"icon": "media/icon.png",

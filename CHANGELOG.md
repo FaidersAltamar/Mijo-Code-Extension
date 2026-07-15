@@ -4,6 +4,13 @@ All notable changes to the "ocursor" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.0.9] - 2026-07-14
+
+### Fixed
+
+- Context token accounting now subtracts the response reservation (`maxTokens`) and a safety buffer before truncating workspace context blocks, preventing the small overshoot that caused "exceeded model token limit: 262144" errors.
+- `buildMessages()` now considers prior conversation steps when allocating budget to live context blocks.
+
 ## [0.0.8] - 2026-07-14
 
 ### Added

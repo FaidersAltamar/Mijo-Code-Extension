@@ -168,10 +168,24 @@ export function buildMessages(system: string, steps: Step[], ctx?: CursorContext
       const parts: WireContentPart[] = [];
 
       if (isLive) {
-        // Reserve tokens for system, query, images, reminder and tool history.
-        const reserved = tok(system) + tok(textContent) + (ctx!.reminder ? tok(ctx!.reminder) : 0) + images.length * 1200 + 512;
-        const contextBudget = maxContextTokens && maxContextTokens > reserved ? maxContextTokens - reserved : undefined;
-        const maxPerBlock = contextBudget ? Math.floor(contextBudget / 2) : undefined;
+        // When a context cap is set, account for everything else (system, prior
+        // steps, the live query + attachments, images, reminder and a safety
+        // buffer) before deciding how much room is left for workspace context.
+        let contextBudget: number | undefined;
+        if (maxContextTokens && maxContextTokens > 0) {
+          const systemTokens = tok(system);
+          const priorStepsTokens = steps.reduce((n, step, idx) => {
+            if (idx === i) return n; // live user query counted separately below
+            return n + stepTokens(step);
+          }, 0);
+          const liveQueryTokens = tok(textContent);
+          const reminderTokens = ctx!.reminder ? tok(ctx!.reminder) : 0;
+          const imageTokens = images.length * 1200;
+          const buffer = 512;
+          const reserved = systemTokens + priorStepsTokens + liveQueryTokens + reminderTokens + imageTokens + buffer;
+          contextBudget = maxContextTokens > reserved ? maxContextTokens - reserved : 0;
+        }
+        const maxPerBlock = contextBudget && contextBudget > 0 ? Math.floor(contextBudget / 2) : undefined;
         if (ctx!.userInfo) {
           parts.push({ type: "text", text: maxPerBlock ? truncateToTokens(ctx!.userInfo, maxPerBlock) : ctx!.userInfo, cache_control: EPHEMERAL });
         }
