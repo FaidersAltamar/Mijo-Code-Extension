@@ -4,6 +4,14 @@ All notable changes to the "ocursor" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.0.17] - 2026-07-15
+
+### Fixed
+
+- Improved error handling for provider connection failures: "Fetch failed" and network errors now show a clear Spanish message suggesting to check internet, API URL and API key.
+- Increased default retry attempts from 3 to 5 for transient network errors.
+- Wrapped streaming fetch calls in OpenAI/Anthropic paths with better error context.
+
 ## [0.0.16] - 2026-07-15
 
 ### Fixed

@@ -121,8 +121,23 @@ export function isRetryableError(e: unknown): boolean {
   if (e instanceof ChatHTTPError) {
     return e.status === 408 || e.status === 425 || e.status === 429 || e.status >= 500;
   }
-  // fetch network failures (TypeError "Failed to fetch", ECONNRESET, etc.) are retryable.
+  // fetch network failures (TypeError "Failed to fetch" / "Fetch failed", ECONNRESET, etc.) are retryable.
   return true;
+}
+
+/** Produce a user-facing message from a fetch/provider error. */
+export function formatProviderError(e: unknown, label: string): string {
+  if (e instanceof DOMException && e.name === "AbortError") {
+    return "La operación fue cancelada (timeout o el usuario detuvo la ejecución).";
+  }
+  if (e instanceof ChatHTTPError) {
+    return `${label} ${e.status}: ${e.message}`;
+  }
+  const msg = e instanceof Error ? e.message : String(e);
+  if (/fetch failed|failed to fetch|networkerror|network error|econnreset|etimedout/i.test(msg)) {
+    return `Error de conexión con ${label}. Revisa tu conexión a internet, la URL de la API y la clave API.`;
+  }
+  return `${label}: ${msg}`;
 }
 
 export const sleep = (ms: number, signal?: AbortSignal) =>
@@ -400,14 +415,14 @@ function cleanTitle(s: string): string {
 export function streamChat(opts: StreamChatOpts): AsyncGenerator<ProviderEvent> {
   if (opts.oauthKind) {
     const make = () => streamOAuthChat(opts.oauthKind!, { model: opts.model, messages: opts.messages, tools: opts.tools, maxTokens: opts.maxTokens, modelParams: opts.modelParams, signal: opts.signal });
-    return streamWithRetry(make, opts.signal, opts.onRetry, opts.maxRetries ?? 3);
+    return streamWithRetry(make, opts.signal, opts.onRetry, opts.maxRetries ?? 5);
   }
   const useAnthropic = opts.anthropic ?? isAnthropic(opts.apiBaseUrl);
   if (useAnthropic && !opts.apiKey) {
     throw new Error("API Key not set");
   }
   const make = () => (useAnthropic ? streamAnthropic(opts) : streamOpenAI(opts));
-  return streamWithRetry(make, opts.signal, opts.onRetry, opts.maxRetries ?? 3);
+  return streamWithRetry(make, opts.signal, opts.onRetry, opts.maxRetries ?? 5);
 }
 
 async function* streamOpenAI(opts: StreamChatOpts): AsyncGenerator<ProviderEvent> {
@@ -432,21 +447,27 @@ async function* streamOpenAI(opts: StreamChatOpts): AsyncGenerator<ProviderEvent
     body.tool_choice = opts.requireTools ? "required" : "auto";
   }
 
-  const r = await fetchWithTimeout(`${opts.apiBaseUrl}/chat/completions`, {
-    method: "POST",
-    headers: {
-      ...(opts.apiKey ? { authorization: `Bearer ${opts.apiKey}` } : {}),
-      "content-type": "application/json",
-    },
-    body: JSON.stringify(body),
-    signal: opts.signal,
-    // Streaming replies can take several minutes for long reasoning/tool outputs.
-    timeoutMs: 600_000,
-  });
+  let r: Response;
+  try {
+    r = await fetchWithTimeout(`${opts.apiBaseUrl}/chat/completions`, {
+      method: "POST",
+      headers: {
+        ...(opts.apiKey ? { authorization: `Bearer ${opts.apiKey}` } : {}),
+        "content-type": "application/json",
+      },
+      body: JSON.stringify(body),
+      signal: opts.signal,
+      // Streaming replies can take several minutes for long reasoning/tool outputs.
+      timeoutMs: 600_000,
+    });
+  } catch (e) {
+    throw new Error(formatProviderError(e, `provider ${opts.apiBaseUrl}`));
+  }
   if (!r.ok || !r.body) {
     const detail = await r.text().catch(() => "");
     throw new ChatHTTPError(r.status, `chat ${r.status}: ${detail.slice(0, 500)}`);
   }
+
 
   const toolAcc: Record<number, { id: string; name: string; args: string }> = {};
   let finishReason = "stop";
@@ -654,19 +675,24 @@ async function* streamAnthropic(opts: {
   // 1M context window is gated behind a beta header on Claude 4.x.
   const betas: string[] = [...reasoningBetas];
   if (opts.modelParams?.maxContext === "1m") betas.push("context-1m-2025-08-07");
-  const r = await fetchWithTimeout(`${opts.apiBaseUrl}/messages`, {
-    method: "POST",
-    headers: {
-      "x-api-key": opts.apiKey,
-      "anthropic-version": "2023-06-01",
-      "content-type": "application/json",
-      ...(betas.length ? { "anthropic-beta": betas.join(",") } : {}),
-    },
-    body: JSON.stringify(body),
-    signal: opts.signal,
-    // Streaming replies can take several minutes for long reasoning/tool outputs.
-    timeoutMs: 600_000,
-  });
+  let r: Response;
+  try {
+    r = await fetchWithTimeout(`${opts.apiBaseUrl}/messages`, {
+      method: "POST",
+      headers: {
+        "x-api-key": opts.apiKey,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+        ...(betas.length ? { "anthropic-beta": betas.join(",") } : {}),
+      },
+      body: JSON.stringify(body),
+      signal: opts.signal,
+      // Streaming replies can take several minutes for long reasoning/tool outputs.
+      timeoutMs: 600_000,
+    });
+  } catch (e) {
+    throw new Error(formatProviderError(e, `provider ${opts.apiBaseUrl}`));
+  }
   if (!r.ok || !r.body) {
     const detail = await r.text().catch(() => "");
     throw new ChatHTTPError(r.status, `anthropic ${r.status}: ${detail.slice(0, 500)}`);

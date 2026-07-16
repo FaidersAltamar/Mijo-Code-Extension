@@ -691,7 +691,12 @@ export async function runAgent(opts: RunAgentOptions): Promise<void> {
 			emit({ type: "run-status", status: "cancelled" });
 			return;
 		}
-		emit({ type: "error", message: e instanceof Error ? e.message : String(e) });
+		const msg = e instanceof Error ? e.message : String(e);
+		// Surface a clearer message for plain network failures.
+		const display = /fetch failed|failed to fetch|networkerror|network error|econnreset|etimedout/i.test(msg)
+			? "Error de conexión con el proveedor de IA. Revisa tu conexión a internet, la URL de la API y la clave API."
+			: msg;
+		emit({ type: "error", message: display });
 		emit({ type: "run-status", status: "error" });
 	} finally {
 		// Tear down this run's persistent shell session.
