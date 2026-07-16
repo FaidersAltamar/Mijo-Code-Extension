@@ -47,7 +47,7 @@ function buildNotify(input: any, ctx: any): ShellNotify | undefined {
 // by a sentinel echo so we can detect completion and capture the exit code.
 export const runTerminalTool = defineTool("Shell", true, async (input, abortSignal, _callId, ctx) => {
   const root = getWorkspaceRoot();
-  const blockMs = typeof input.block_until_ms === "number" ? input.block_until_ms : 30_000;
+  const blockMs = typeof input.block_until_ms === "number" ? input.block_until_ms : 300_000;
   const command = String(input.command ?? "");
 
   // Prune finished shells older than 10 minutes to bound the registry.
@@ -117,7 +117,7 @@ export const runTerminalTool = defineTool("Shell", true, async (input, abortSign
 
 // ---- AwaitShell (poll a backgrounded shell, or just sleep) ----
 export const awaitShellTool = defineTool("AwaitShell", false, async (input) => {
-  const blockMs = typeof input?.block_until_ms === "number" ? input.block_until_ms : 30_000;
+  const blockMs = typeof input?.block_until_ms === "number" ? input.block_until_ms : 300_000;
   const id = input?.shell_id ? String(input.shell_id) : "";
 
   // No shell id: sleep for the full duration (renders nicely vs. sleeping in the

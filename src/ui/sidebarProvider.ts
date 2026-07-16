@@ -38,6 +38,8 @@ export class SidebarProvider {
   private _view?: vscode.WebviewView | vscode.WebviewPanel;
   /** One independent agent run per conversation, so chats run concurrently. */
   private _sessions = new Map<string, RunSession>();
+  /** Tracks the active run promise per conversation so replacement waits cleanly. */
+  private _runPromises = new Map<string, Promise<void>>();
   private _currentMode: Mode = "agent";
   /** Shared debug/log output channel (View → Output → "Mijo Code"). Lazy: created on first use, not at module load. */
   private static _log?: vscode.OutputChannel;
@@ -214,7 +216,7 @@ export class SidebarProvider {
         case "exportConversation": {
           const conv = this._store.get(data.convId || this._activeId || "");
           if (!conv) break;
-          const safe = (conv.title || "conversation").replace(/[^\w-]+/g, "_").slice(0, 60);
+          const safe = (conv.title || "conversacion").replace(/[^\w-]+/g, "_").slice(0, 60);
           const target = await vscode.window.showSaveDialog({
             defaultUri: vscode.Uri.joinPath(vscode.workspace.workspaceFolders?.[0]?.uri ?? vscode.Uri.file(process.cwd()), `${safe}.json`),
             filters: { "Archivo JSON": ["json"] },
@@ -734,14 +736,15 @@ export class SidebarProvider {
         return;
       }
       session.pendingQuestions.set(callId, resolve);
-      signal?.addEventListener("abort", () => {
+      const onAbort = () => {
         if (session.pendingQuestions.has(callId)) {
           session.pendingQuestions.delete(callId);
           const err = new Error("cancelled");
           err.name = "AbortError";
           reject(err);
         }
-      });
+      };
+      signal?.addEventListener("abort", onAbort, { once: true });
     });
   }
 
@@ -788,7 +791,8 @@ export class SidebarProvider {
       session.pendingApprovals.set(info.requestId, { info, resolve: settle });
       this._view?.webview.postMessage({ type: "approvalRequest", convId, request: info });
       // Cancelling the run denies anything still pending.
-      session.abort.signal.addEventListener("abort", () => settle(false));
+      const onAbort = () => settle(false);
+      session.abort.signal.addEventListener("abort", onAbort, { once: true });
     });
   }
 
@@ -1232,19 +1236,15 @@ export class SidebarProvider {
     }
     // Bind this run to a fixed conversation id; switching chats must not affect it.
     const convId = this._activeId;
-    // A run is already in flight (e.g. "send now" on a queued message): abort it
-    // and wait for its `finally` to clear the session, then start this run.
-    const existing = this._sessions.get(convId);
-    if (existing) {
-      existing.abort.abort();
-      for (let i = 0; i < 100 && this._sessions.has(convId); i++) {
-        await new Promise((r) => setTimeout(r, 50));
-      }
-      if (this._sessions.has(convId)) {
-        vscode.window.showWarningMessage("Mijo Code: Este chat ya está en ejecución.");
-        return;
-      }
+    // Serialize runs for the same conversation: abort any in-flight run and wait
+    // for its cleanup before starting this one, preventing race conditions where
+    // the old run's finally deletes the new session.
+    const previous = this._runPromises.get(convId);
+    if (previous) {
+      this._sessions.get(convId)?.abort.abort();
+      try { await previous; } catch { /* ignore */ }
     }
+    const runToken = { convId, id: Date.now() + Math.random() };
     const isFirstMessage = (this._store.get(convId)?.steps.length ?? 0) === 0;
     if (isFirstMessage) {
       const fallback = text.trim() ? titleFromText(renderMentionTokens(text)) : attachments?.length ? `${attachments.length} adjunto(s)` : "Nuevo chat";
@@ -1265,10 +1265,13 @@ export class SidebarProvider {
       pendingQuestions: new Map(),
       pendingApprovals: new Map(),
       turns: seededTurns,
+      token: runToken,
     };
     this._sessions.set(convId, session);
 
-    const features = this.featureStore.get();
+    // Track this run so a subsequent message waits for it to finish.
+    const runP = (async () => {
+      const features = this.featureStore.get();
     const mode = this._currentMode;
     // beforeSubmit hooks may veto the prompt entirely.
     {
@@ -1366,7 +1369,8 @@ export class SidebarProvider {
         history,
         maxTokens: settings.maxResponseLength > 0 ? settings.maxResponseLength : undefined,
         maxSteps: features.maxAgentSteps > 0 ? features.maxAgentSteps : undefined,
-        autoContinue: features.autoContinue === true,
+        // Runs always auto-continue now; the loop never pauses at the step limit.
+        autoContinue: true,
         // Note: modelId (not prov.model — that's the gguf basename for llama.cpp).
         contextTokens: this._contextTokensFor(modelId, prov.oauthKind ?? features.providers.find((p) => p.id === prov.providerId)?.kind),
         modelParams: optionsToParams(this.featureStore.optionsFor(prov.model, prov.oauthKind ?? features.providers.find((p) => p.id === prov.providerId)?.kind)),
@@ -1397,14 +1401,25 @@ export class SidebarProvider {
       if (session.persistTimer) { clearTimeout(session.persistTimer); session.persistTimer = undefined; }
       // Persist final authoritative turns + steps before dropping the session.
       await this._store.update(convId, { turns: session.turns, steps: history });
-      this._sessions.delete(convId);
+      // Only delete the session if it still belongs to this run (token check
+      // prevents an older run's cleanup from wiping a newer active session).
+      if (this._sessions.get(convId)?.token === session.token) {
+        this._sessions.delete(convId);
+      }
       this._sendConversations();
     }
+    })();
+    this._runPromises.set(convId, runP);
+    runP.catch(() => {}).finally(() => {
+      if (this._runPromises.get(convId) === runP) {
+        this._runPromises.delete(convId);
+      }
+    });
   }
 
   private _getHtmlForWebview(webview: vscode.Webview) {
     const locale = this.settingsManager.get<string>("language") || "es";
-    return renderWebviewHtml(webview, this.context.extensionUri, "sidebar", "Mijo Code Chat", locale);
+    return renderWebviewHtml(webview, this.context.extensionUri, "sidebar", "Chat de Mijo Code", locale);
   }
 }
 

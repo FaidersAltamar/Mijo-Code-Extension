@@ -464,11 +464,11 @@ function SubagentChat({ block, onBack }: { block: import("./types").ToolBlock; o
             )
           )}
           {running && (
-            <div className="phase-row"><span className="phase-shimmer">Working</span></div>
+            <div className="phase-row"><span className="phase-shimmer">Trabajando</span></div>
           )}
           {!running && block.result && (
             <div className="sub-summary">
-              <div className="sub-summary-label">Summary</div>
+              <div className="sub-summary-label">Resumen</div>
               <Markdown text={block.result} />
             </div>
           )}
@@ -486,12 +486,12 @@ interface ChatSession {
   usedTokens?: number;
 }
 const ACTION_LABEL: Record<ApprovalRequestInfo["actionType"], string> = {
-  shell: "Terminal command",
-  edits: "File edit",
-  delete: "File delete",
-  outside: "Outside-workspace access",
-  mcp: "MCP tool",
-  web: "Web access",
+  shell: "Comando de terminal",
+  edits: "Edición de archivo",
+  delete: "Eliminación de archivo",
+  outside: "Acceso fuera del espacio de trabajo",
+  mcp: "Herramienta MCP",
+  web: "Acceso web",
 };
 
 /** In-chat approval prompt rendered on the tool/action card. Approve has a
@@ -515,14 +515,14 @@ function ApprovalCard({ request, inline }: { request: ApprovalRequestInfo; inlin
     <div className={"approval-card" + (inline ? " inline" : "")}>
       <div className="ap-head">
         <Icon name="tools" size={14} />
-        <span className="ap-title">{ACTION_LABEL[request.actionType]} needs approval</span>
+        <span className="ap-title">{ACTION_LABEL[request.actionType]} necesita aprobación</span>
         <span className="ap-tool">{request.toolName}</span>
       </div>
       {!inline && <div className="ap-detail"><code>{request.detail}</code></div>}
       <div className="ap-actions">
         <div className="ap-approve-group" ref={menuRef}>
-          <button className="ap-btn allow" onClick={() => resolve({ approve: true })}>Approve</button>
-          <button className="ap-btn allow ap-arrow" title="Approve options (these also update Behavior settings)" onClick={() => setMenu((v) => !v)}>
+          <button className="ap-btn allow" onClick={() => resolve({ approve: true })}>Aprobar</button>
+          <button className="ap-btn allow ap-arrow" title="Opciones de aprobación (estas también actualizan la configuración de Comportamiento)" onClick={() => setMenu((v) => !v)}>
             <Icon name="chevD" size={11} />
           </button>
           {menu && (
@@ -530,42 +530,42 @@ function ApprovalCard({ request, inline }: { request: ApprovalRequestInfo; inlin
               {request.suggestion && (
                 <button
                   className="ap-menu-item"
-                  title={`Approve and add "${request.suggestion}" to the ${label} allow list`}
+                  title={`Aprobar y añadir "${request.suggestion}" a la lista de permisos de ${label}`}
                   onClick={() => resolve({ approve: true, pattern: request.suggestion, addPattern: "allow" })}
                 >
-                  Always allow <code>{request.suggestion}</code>
+                  Permitir siempre <code>{request.suggestion}</code>
                 </button>
               )}
               <button
                 className="ap-menu-item"
-                title={`Approve and only ask for risky-looking ${label}s from now on`}
+                title={`Aprobar y solo preguntar por ${label} de aspecto arriesgado de ahora en adelante`}
                 onClick={() => resolve({ approve: true, setMode: "review" })}
               >
-                Auto review {label}s
+                Revisión automática de {label}
               </button>
               <button
                 className="ap-menu-item"
-                title={`Approve and run every ${label} without asking from now on`}
+                title={`Aprobar y ejecutar cada ${label} sin preguntar de ahora en adelante`}
                 onClick={() => resolve({ approve: true, setMode: "allow" })}
               >
-                Run everything ({label}s)
+                Ejecutar todo ({label})
               </button>
               {request.suggestion && (
                 <button
                   className="ap-menu-item danger"
-                  title={`Reject and add "${request.suggestion}" to the deny list`}
+                  title={`Rechazar y añadir "${request.suggestion}" a la lista de denegación`}
                   onClick={() => resolve({ approve: false, pattern: request.suggestion, addPattern: "deny" })}
                 >
-                  Always deny <code>{request.suggestion}</code>
+                  Denegar siempre <code>{request.suggestion}</code>
                 </button>
               )}
               <button className="ap-menu-item" onClick={() => post({ type: "openSettings", section: "behavior" })}>
-                <Icon name="settings" size={12} /> Behavior settings…
+                <Icon name="settings" size={12} /> Configuración de comportamiento…
               </button>
             </div>
           )}
         </div>
-        <button className="ap-btn deny" onClick={() => resolve({ approve: false })}>Reject</button>
+        <button className="ap-btn deny" onClick={() => resolve({ approve: false })}>Rechazar</button>
       </div>
     </div>
   );
@@ -855,7 +855,7 @@ export function App() {
     for (const [id, s] of sessionsRef.current) {
       if (!id) continue;
       const live = set.has(id);
-      if (live && !s.running) { s.running = true; if (!s.status.text) s.status = { text: "Working" }; }
+      if (live && !s.running) { s.running = true; if (!s.status.text) s.status = { text: "Trabajando" }; }
       else if (!live && s.running) { s.running = false; }
     }
   };
@@ -937,7 +937,7 @@ export function App() {
           }
           const s = sessionFor(msg.convId);
           s.running = true;
-          s.status = { text: "Generating…" };
+          s.status = { text: "Generando…" };
           force();
           break;
         }
@@ -963,7 +963,7 @@ export function App() {
           const s = sessionFor(msg.convId);
           const settled = ev.type === "run-status" && (ev.status === "finished" || ev.status === "cancelled" || ev.status === "error");
           if (ev.type === "run-status") {
-            s.status = { text: ev.status === "running" ? "Planning next moves" : ev.status === "finished" ? "" : ev.status };
+            s.status = { text: ev.status === "running" ? "Planificando siguientes pasos" : ev.status === "finished" ? "" : ev.status };
             if (settled) {
               s.running = false;
               if (ev.status === "finished" && uiPrefsRef.current.completionSound) playCompletionSound();
@@ -986,14 +986,14 @@ export function App() {
             // Throttle-persist live turns so a pane move / remount (which destroys
             // the webview without a reliable pagehide) restores the in-flight chat.
             schedulePersist(msg.convId, s);
-            if (ev.type === "thinking-delta") s.status = { text: "Thinking" };
-            else if (ev.type === "text-delta") s.status = { text: "Generating" };
+            if (ev.type === "thinking-delta") s.status = { text: "Pensando" };
+            else if (ev.type === "text-delta") s.status = { text: "Generando" };
             else if (ev.type === "tool-call-started") s.status = { text: capitalize(toolLabel(ev.name)) };
             else if (ev.type === "tool-call-args") {/* keep current tool label while args stream */}
-            else if (ev.type === "tool-call-completed") s.status = { text: "Planning next moves" };
-            else if (ev.type === "retry") s.status = { text: `Retrying (${ev.attempt}/${ev.max})…` };
+            else if (ev.type === "tool-call-completed") s.status = { text: "Planificando siguientes pasos" };
+            else if (ev.type === "retry") s.status = { text: `Reintentando (${ev.attempt}/${ev.max})…` };
             else if (ev.type === "usage") s.usedTokens = ev.totalTokens;
-            else if (ev.type === "compaction") s.status = { text: ev.status === "running" ? "Summarizing conversation" : "Planning next moves" };
+            else if (ev.type === "compaction") s.status = { text: ev.status === "running" ? "Resumiendo conversación" : "Planificando siguientes pasos" };
             else if (ev.type === "shell-notify") s.status = { text: ev.message };
             else if (ev.type === "error") {
               // Keep the rendered error block; persist so the chat survives reloads.
@@ -1159,8 +1159,8 @@ export function App() {
     setMode("agent");
     post({ type: "setMode", mode: "agent" });
     const text = planPath
-      ? `Implement the plan in \`${planPath}\`. Read it first, then execute every step. Keep going until it is fully done.`
-      : "Implement the plan you just wrote. Execute every step until it is fully done.";
+      ? `Implementa el plan en \`${planPath}\`. Léelo primero, luego ejecuta cada paso. Sigue hasta que esté completamente terminado.`
+      : "Implementa el plan que acabas de escribir. Ejecuta cada paso hasta que esté completamente terminado.";
     const s = sessionFor(activeIdRef.current);
     s.turns = [...s.turns, { role: "user", text }];
     pinTopRef.current = true;
@@ -1225,7 +1225,7 @@ export function App() {
         >
           {openTabs.map((tabId) => {
             const c = conversations.find((x) => x.id === tabId);
-            const title = c ? c.title : "New Chat";
+            const title = c ? c.title : "Nuevo chat";
             return (
               <div
                 key={tabId}
@@ -1259,14 +1259,14 @@ export function App() {
           {/* Show a "New Chat" tab when no tabs are open or activeId has no tab */}
           {(!activeId || !openTabs.includes(activeId)) && (
             <div className={"tab" + (!subTab ? " active" : "")}>
-              <span className="tab-title">New Chat</span>
+              <span className="tab-title">Nuevo chat</span>
             </div>
           )}
           {/* Virtual tab for an opened subagent run. */}
           {subBlock && (
-            <div className="tab subagent-tab active" title="Subagent">
+            <div className="tab subagent-tab active" title="Subagente">
               <span className="tab-icon"><Icon name="task" size={12} /></span>
-              <span className="tab-title">{subBlock.input?.description || "Subagent"}</span>
+              <span className="tab-title">{subBlock.input?.description || "Subagente"}</span>
               <span className="tab-close" onClick={(e) => { e.stopPropagation(); setSubTab(null); }}>
                 <Icon name="close" size={12} />
               </span>
@@ -1274,7 +1274,7 @@ export function App() {
           )}
         </div>
         <div className="actions">
-          <button className="hicon" title={t("app.add") + " Chat"} onClick={() => post({ type: "newConversation" })}>
+          <button className="hicon" title={t("app.add") + " chat"} onClick={() => post({ type: "newConversation" })}>
             <Icon name="plus" size={14} />
           </button>
           <button className="hicon" title={t("history.title")} onClick={() => setHistoryOpen(true)}>
@@ -1326,15 +1326,15 @@ export function App() {
         ) : !hasProviders ? (
           <div className="setup-screen">
             <img className="app-logo" src={document.getElementById("root")?.dataset.icon} alt="Mijo Code" />
-            <div className="setup-title">Set up a provider to start</div>
-            <div className="setup-desc">Mijo Code needs an AI provider before you can chat.</div>
+            <div className="setup-title">Configura un proveedor para empezar</div>
+            <div className="setup-desc">Mijo Code necesita un proveedor de IA antes de que puedas chatear.</div>
             <ol className="setup-steps">
-              <li>Open <b>{t("settings.title")} → {t("settings.providers")}</b>.</li>
-              <li>{t("app.add")} a provider (OpenAI, Anthropic, OpenRouter, Ollama or llama.cpp).</li>
-              <li>Enter its base URL and API key, then set it active.</li>
+              <li>Abre <b>{t("settings.title")} → {t("settings.providers")}</b>.</li>
+              <li>{t("app.add")} un proveedor (OpenAI, Anthropic, OpenRouter, Ollama o llama.cpp).</li>
+              <li>Introduce su URL base y clave API, luego actívalo.</li>
             </ol>
             <button className="setup-btn" onClick={() => post({ type: "openSettings", section: "providers" })}>
-              <Icon name="settings" size={14} /> {t("app.add")} a provider
+              <Icon name="settings" size={14} /> {t("app.add")} un proveedor
             </button>
           </div>
         ) : turns.length === 0 ? (
@@ -1394,7 +1394,7 @@ export function App() {
                     <div className="msg user" key={index}>
                       <button
                         className="msg-revert-btn"
-                        title="Revert to here — returns this message to the composer"
+                        title="Revertir hasta aquí — devuelve este mensaje al compositor"
                         onClick={(e) => { e.stopPropagation(); requestRevert(index, turn); }}
                       >
                         <Icon name="reset" size={12} />
@@ -1402,7 +1402,7 @@ export function App() {
                       <div
                         className="bubble"
                         onClick={() => startEdit(index, turn)}
-                        title="Click to edit & resend"
+                        title="Clic para editar y reenviar"
                         ref={(el) => { if (el) el.classList.toggle("clamped", el.scrollHeight > el.clientHeight + 1); }}
                       >
                         {turn.attachments && turn.attachments.length > 0 && (
@@ -1425,7 +1425,7 @@ export function App() {
                 ) : (
                   <div className="msg assistant" key={index}>
                     <div className="role">
-                      <Icon name="bot" /> Agent
+                      <Icon name="bot" /> Agente
                     </div>
                     <div className="bubble">
                       {(() => { const items = groupBlocks((turn as AssistantTurn).blocks); const lastTurn = turn === turns[turns.length - 1]; return items.map((b, bi) =>
@@ -1475,7 +1475,7 @@ export function App() {
 
       <div className="bottom-stack" style={hasProviders && !subBlock ? undefined : { display: "none" }}>
         {!following && turns.length > 0 && (
-          <button className="scroll-bottom-btn" title="Scroll to bottom" onClick={scrollToBottom}>
+          <button className="scroll-bottom-btn" title="Desplazarse al final" onClick={scrollToBottom}>
             <Icon name="chevD" size={14} />
           </button>
         )}
@@ -1484,14 +1484,14 @@ export function App() {
             <div className="review-head">
               <span className="review-title" onClick={() => setReviewOpen((o) => !o)}>
                 <Icon name={reviewOpen ? "chevD" : "chevR"} size={12} className="rv-chev" />
-                {pendingChanges.length} File{pendingChanges.length > 1 ? "s" : ""}
+                {pendingChanges.length} archivo{pendingChanges.length > 1 ? "s" : ""}
               </span>
               <div className="review-actions">
                 <button className="rv-link" onClick={() => post({ type: "rejectAllChanges" })}>
-                  Undo All
+                  Deshacer todo
                 </button>
                 <button className="rv-link" onClick={() => post({ type: "acceptAllChanges" })}>
-                  Keep All
+                  Mantener todo
                 </button>
                 {/* <button className="rv-review" onClick={() => setReviewOpen((o) => !o)}>
                   Review
@@ -1507,17 +1507,17 @@ export function App() {
                     <span className="rv-file" title={c.path} onClick={() => post({ type: "diffChange", path: c.path })}>
                       <Icon name="file" size={13} />
                       <span className="rv-name">{name}</span>
-                      {!c.existedBefore && <span className="rv-tag">new</span>}
+                      {!c.existedBefore && <span className="rv-tag">nuevo</span>}
                       <span className="rv-stats">
                         {(c.added ?? 0) > 0 && <span className="rv-add">+{c.added}</span>}
                         {(c.removed ?? 0) > 0 && <span className="rv-del">-{c.removed}</span>}
                       </span>
                     </span>
                     <span className="rv-item-actions">
-                      <button className="rv-icon reject" title="Undo" onClick={() => post({ type: "rejectChange", path: c.path })}>
+                      <button className="rv-icon reject" title="Deshacer" onClick={() => post({ type: "rejectChange", path: c.path })}>
                         <Icon name="close" size={13} />
                       </button>
-                      <button className="rv-icon accept" title="Keep" onClick={() => post({ type: "acceptChange", path: c.path })}>
+                      <button className="rv-icon accept" title="Mantener" onClick={() => post({ type: "acceptChange", path: c.path })}>
                         <Icon name="check" size={13} />
                       </button>
                     </span>
@@ -1549,14 +1549,14 @@ export function App() {
               <div className="queue-item" key={i}>
                 <Icon name="clock" size={12} />
                 <span className="queue-text" title={renderMentionTokens(q.text)}>{renderMentionTokens(q.text)}</span>
-                <span className="queue-actions">
-                  <button className="q-btn" title="Send now (stops current run)" onClick={() => runQueuedNow(i)}>
+                  <span className="queue-actions">
+                  <button className="q-btn" title="Enviar ahora (detiene la ejecución actual)" onClick={() => runQueuedNow(i)}>
                     <Icon name="play" size={12} />
                   </button>
-                  <button className="q-btn" title="Edit (back to composer)" onClick={() => editQueued(i)}>
+                  <button className="q-btn" title="Editar (volver al compositor)" onClick={() => editQueued(i)}>
                     <Icon name="edit" size={12} />
                   </button>
-                  <button className="q-btn" title="Remove" onClick={() => removeQueued(i)}>
+                  <button className="q-btn" title="Eliminar" onClick={() => removeQueued(i)}>
                     <Icon name="close" size={12} />
                   </button>
                 </span>

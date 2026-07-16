@@ -11,7 +11,7 @@ import * as vscode from "vscode";
 import * as crypto from "crypto";
 import * as http from "http";
 import { ProviderEvent, ToolSchema, WireMessage } from "./types";
-import { ChatHTTPError, applyAnthropicReasoning } from "./provider";
+import { ChatHTTPError, applyAnthropicReasoning, fetchWithTimeout } from "./provider";
 
 export type {
   OAuthKind,
@@ -816,7 +816,7 @@ async function* streamClaudeCode(id: string, opts: {
 
   const betas = ["oauth-2025-04-20", ...reasoningBetas];
   if (opts.modelParams?.maxContext === "1m") betas.push("context-1m-2025-08-07");
-  const r = await fetch("https://api.anthropic.com/v1/messages?beta=true", {
+  const r = await fetchWithTimeout("https://api.anthropic.com/v1/messages?beta=true", {
     method: "POST",
     headers: {
       authorization: `Bearer ${acc.accessToken}`,
@@ -827,6 +827,7 @@ async function* streamClaudeCode(id: string, opts: {
     },
     body: JSON.stringify(body),
     signal: opts.signal,
+    timeoutMs: 120_000,
   });
   if (!r.ok || !r.body) {
     throw new ChatHTTPError(r.status, `claude-code ${r.status}: ${(await r.text().catch(() => "")).slice(0, 500)}`);
@@ -857,7 +858,7 @@ async function* streamCodex(id: string, opts: {
     body.tools = opts.tools.map((t) => ({ type: "function", name: t.function.name, description: t.function.description, parameters: t.function.parameters }));
   }
 
-  const r = await fetch(CODEX.responsesUrl, {
+  const r = await fetchWithTimeout(CODEX.responsesUrl, {
     method: "POST",
     headers: {
       authorization: `Bearer ${acc.accessToken}`,
@@ -870,6 +871,7 @@ async function* streamCodex(id: string, opts: {
     },
     body: JSON.stringify(body),
     signal: opts.signal,
+    timeoutMs: 120_000,
   });
   if (!r.ok || !r.body) {
     throw new ChatHTTPError(r.status, `codex ${r.status}: ${(await r.text().catch(() => "")).slice(0, 500)}`);
@@ -1146,7 +1148,7 @@ async function* streamAntigravity(id: string, opts: {
     request,
   };
 
-  const r = await fetch(`${ANTIGRAVITY.apiBase}/v1internal:streamGenerateContent?alt=sse`, {
+  const r = await fetchWithTimeout(`${ANTIGRAVITY.apiBase}/v1internal:streamGenerateContent?alt=sse`, {
     method: "POST",
     headers: {
       authorization: `Bearer ${acc.accessToken}`,
@@ -1156,6 +1158,7 @@ async function* streamAntigravity(id: string, opts: {
     },
     body: JSON.stringify(body),
     signal: opts.signal,
+    timeoutMs: 120_000,
   });
   if (!r.ok || !r.body) {
     throw new ChatHTTPError(r.status, `antigravity ${r.status}: ${(await r.text().catch(() => "")).slice(0, 500)}`);

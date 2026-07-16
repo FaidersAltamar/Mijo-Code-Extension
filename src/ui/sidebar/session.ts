@@ -36,5 +36,7 @@ export interface RunSession {
   turns: Turn[];
   /** Pending throttled persist timer. */
   persistTimer?: NodeJS.Timeout;
+  /** Unique token so a run's cleanup only deletes its own session. */
+  token: { convId: string; id: number };
 }
 

@@ -26,7 +26,8 @@ export const DEFAULT_SETTINGS: Settings = {
   maxResponseLength: 0,
   // Hard cap on the context window used to build requests. Protects against
   // providers that advertise large windows but reject requests above a lower limit.
-  maxContextTokens: 262_144,
+  // Default leaves headroom below common 256k model limits to avoid 400s.
+  maxContextTokens: 240_000,
   enableWorkspaceContext: true,
   enableFileReading: true,
   enableTerminalSuggestions: true,

@@ -21,6 +21,7 @@ import * as fs from "fs/promises";
 import * as path from "path";
 import * as crypto from "crypto";
 import { walk } from "./tools/shared";
+import { fetchWithTimeout } from "./provider";
 import { importRuntimeDep } from "../runtimeDeps";
 
 // Selectable local embedding models. Add entries here to offer more choices.
@@ -128,10 +129,11 @@ async function getExtractor(): Promise<any | null> {
 async function embedRemote(texts: string[]): Promise<number[][] | null> {
   if (!remoteCfg) return null;
   try {
-    const res = await fetch(`${remoteCfg.baseUrl.replace(/\/$/, "")}/embeddings`, {
+    const res = await fetchWithTimeout(`${remoteCfg.baseUrl.replace(/\/$/, "")}/embeddings`, {
       method: "POST",
       headers: { "content-type": "application/json", authorization: `Bearer ${remoteCfg.apiKey}` },
       body: JSON.stringify({ model: remoteCfg.id, input: texts }),
+      timeoutMs: 120_000,
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`);
     const json: any = await res.json();

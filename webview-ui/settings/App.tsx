@@ -27,7 +27,7 @@ interface Settings {
 const DEFAULTS: Settings = {
   model: "",
   maxResponseLength: 0,
-  maxContextTokens: 262144,
+  maxContextTokens: 240000,
   enableWorkspaceContext: true,
   enableFileReading: true,
   enableTerminalSuggestions: true,
@@ -53,20 +53,20 @@ interface EmbedModel {
 // group · plugins-style group (Rules, MCPs, Hooks, Indexing) · misc.
 const NAV: { id: Section; label: string; icon: IconName; sep?: boolean }[] = [
   { id: "general", label: "General", icon: "settings" },
-  { id: "providers", label: "Providers", icon: "globe", sep: true },
+  { id: "providers", label: "Proveedores", icon: "globe", sep: true },
   { id: "llamacpp", label: "llama.cpp", icon: "database" },
   { id: "ollama", label: "Ollama", icon: "database" },
-  { id: "usage", label: "Usage & Quota", icon: "history", sep: true },
-  { id: "agents", label: "Agents", icon: "agent" },
-  { id: "models", label: "Models", icon: "model" },
-  { id: "behavior", label: "Behavior", icon: "tools" },
+  { id: "usage", label: "Uso y cuota", icon: "history", sep: true },
+  { id: "agents", label: "Agentes", icon: "agent" },
+  { id: "models", label: "Modelos", icon: "model" },
+  { id: "behavior", label: "Comportamiento", icon: "tools" },
   { id: "personas", label: "Personas", icon: "bot", sep: true },
-  { id: "rules", label: "Rules, Skills, Subagents", icon: "ruler" },
-  { id: "mcp", label: "Tools & MCPs", icon: "task" },
+  { id: "rules", label: "Reglas, habilidades y subagentes", icon: "ruler" },
+  { id: "mcp", label: "Herramientas y MCPs", icon: "task" },
   { id: "hooks", label: "Hooks", icon: "infinity" },
-  { id: "indexing", label: "Indexing & Docs", icon: "database" },
-  { id: "advanced", label: "Advanced", icon: "fileCode", sep: true },
-  { id: "about", label: "About", icon: "book" },
+  { id: "indexing", label: "Indexación y documentos", icon: "database" },
+  { id: "advanced", label: "Avanzado", icon: "fileCode", sep: true },
+  { id: "about", label: "Acerca de", icon: "book" },
 ];
 
 /** Search terms per section so the nav filter finds settings inside pages too. */
@@ -157,19 +157,19 @@ function Row({
 // ---- Approval policy editor ----
 
 const APPROVAL_ACTIONS: { type: ApprovalActionType; label: string; desc: string; listHint: string; listsSupported: boolean }[] = [
-  { type: "shell", label: "Terminal Commands", desc: "Shell commands the agent runs.", listHint: "command or prefix, e.g. git status, pnpm *, rm *", listsSupported: true },
-  { type: "edits", label: "File Edits", desc: "Creating and modifying files (Write, StrReplace, notebooks).", listHint: "path glob, e.g. src/**, *.md, package.json", listsSupported: true },
-  { type: "delete", label: "File Deletes", desc: "Deleting files.", listHint: "path glob, e.g. dist/**, *.log", listsSupported: true },
-  { type: "mcp", label: "MCP Tools", desc: "Tools exposed by connected MCP servers.", listHint: "tool name or prefix, e.g. mcp__github__*", listsSupported: true },
-  { type: "web", label: "Web Access", desc: "Web search and URL fetches.", listHint: "url or query pattern, e.g. https://github.com/*", listsSupported: true },
-  { type: "outside", label: "Outside Workspace", desc: "Reading or writing files outside the workspace folder.", listHint: "absolute path glob, e.g. C:/Users/me/notes/**", listsSupported: true },
+  { type: "shell", label: "Comandos de terminal", desc: "Comandos de shell que ejecuta el agente.", listHint: "comando o prefijo, p. ej. git status, pnpm *, rm *", listsSupported: true },
+  { type: "edits", label: "Ediciones de archivos", desc: "Crear y modificar archivos (Write, StrReplace, notebooks).", listHint: "patrón de ruta, p. ej. src/**, *.md, package.json", listsSupported: true },
+  { type: "delete", label: "Eliminaciones de archivos", desc: "Eliminar archivos.", listHint: "patrón de ruta, p. ej. dist/**, *.log", listsSupported: true },
+  { type: "mcp", label: "Herramientas MCP", desc: "Herramientas expuestas por servidores MCP conectados.", listHint: "nombre de herramienta o prefijo, p. ej. mcp__github__*", listsSupported: true },
+  { type: "web", label: "Acceso web", desc: "Búsqueda web y consultas de URL.", listHint: "url o patrón de consulta, p. ej. https://github.com/*", listsSupported: true },
+  { type: "outside", label: "Fuera del espacio de trabajo", desc: "Leer o escribir archivos fuera de la carpeta del espacio de trabajo.", listHint: "patrón de ruta absoluta, p. ej. C:/Users/me/notes/**", listsSupported: true },
 ];
 
 const APPROVAL_MODES: { id: ApprovalMode; label: string; desc: string }[] = [
-  { id: "allow", label: "Allow", desc: "Run without asking" },
-  { id: "review", label: "Auto Review", desc: "Ask only when it looks risky" },
-  { id: "ask", label: "Ask", desc: "Prompt every time" },
-  { id: "deny", label: "Deny", desc: "Always block" },
+  { id: "allow", label: "Permitir", desc: "Ejecutar sin preguntar" },
+  { id: "review", label: "Revisión automática", desc: "Preguntar solo cuando parezca arriesgado" },
+  { id: "ask", label: "Preguntar", desc: "Preguntar cada vez" },
+  { id: "deny", label: "Denegar", desc: "Bloquear siempre" },
 ];
 
 /** Comma/newline-separated pattern list editor. */
@@ -188,7 +188,7 @@ function PatternList({ label, values, hint, onChange }: { label: string; values:
           {values.map((v) => (
             <span key={v} className="pattern-chip">
               <code>{v}</code>
-              <button className="icon-btn" title="Remove" onClick={() => onChange(values.filter((x) => x !== v))}>
+              <button className="icon-btn" title="Eliminar" onClick={() => onChange(values.filter((x) => x !== v))}>
                 <Icon name="close" size={11} />
               </button>
             </span>
@@ -203,7 +203,7 @@ function PatternList({ label, values, hint, onChange }: { label: string; values:
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(); } }}
         />
-        <button className="btn-ghost sm" disabled={!draft.trim()} onClick={add}>Add</button>
+        <button className="btn-ghost sm" disabled={!draft.trim()} onClick={add}>Añadir</button>
       </div>
     </div>
   );
@@ -228,7 +228,7 @@ function ApprovalCard({
         <div className="fc-title-input" style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <Icon name={open ? "chevD" : "chevR"} size={14} />
           <span>{action.label}</span>
-          {hasLists && <span className="badge-tag glob">{(r.allowlist?.length ?? 0) + (r.denylist?.length ?? 0)} rules</span>}
+          {hasLists && <span className="badge-tag glob">{(r.allowlist?.length ?? 0) + (r.denylist?.length ?? 0)} reglas</span>}
         </div>
         <select
           value={r.mode}
@@ -244,13 +244,13 @@ function ApprovalCard({
       {open && (
         <div className="fc-body">
           <p className="panel-hint" style={{ margin: 0 }}>
-            {action.desc} Currently: <strong>{APPROVAL_MODES.find((m) => m.id === r.mode)?.desc}</strong>.
-            Deny list always blocks; allow list always runs — both override the mode.
+            {action.desc} Actualmente: <strong>{APPROVAL_MODES.find((m) => m.id === r.mode)?.desc}</strong>.
+            La lista de denegación bloquea siempre; la lista de permisos ejecuta siempre — ambas anulan el modo.
           </p>
           {action.listsSupported && (
             <>
-              <PatternList label="Allow list (always run)" values={r.allowlist ?? []} hint={action.listHint} onChange={(v) => patch({ allowlist: v })} />
-              <PatternList label="Deny list (always block)" values={r.denylist ?? []} hint={action.listHint} onChange={(v) => patch({ denylist: v })} />
+              <PatternList label="Lista de permisos (ejecutar siempre)" values={r.allowlist ?? []} hint={action.listHint} onChange={(v) => patch({ allowlist: v })} />
+              <PatternList label="Lista de denegación (bloquear siempre)" values={r.denylist ?? []} hint={action.listHint} onChange={(v) => patch({ denylist: v })} />
             </>
           )}
         </div>
@@ -285,16 +285,16 @@ function UsagePanel({
   const max = Math.max(1, ...rows.map(([, u]) => u.promptTokens + u.completionTokens));
   return (
     <>
-      <h1 className="page-title">Usage &amp; Quota</h1>
+      <h1 className="page-title">Uso y cuota</h1>
 
-      <div className="section-label">Token Usage</div>
+      <div className="section-label">Uso de tokens</div>
       <div className="index-card">
         <div className="index-card-title">Total</div>
         <p className="row-desc">
-          {fmtTokens(totals.p)} input · {fmtTokens(totals.c)} output tokens across {totals.r} request{totals.r === 1 ? "" : "s"}. Tracked locally on this machine.
+          {fmtTokens(totals.p)} de entrada · {fmtTokens(totals.c)} de salida en {totals.r} solicitud{totals.r === 1 ? "" : "es"}. Registrado localmente en esta máquina.
         </p>
         {rows.length === 0 ? (
-          <div className="empty-card" style={{ marginTop: 12 }}>No usage recorded yet. Start chatting to see per-model token usage.</div>
+          <div className="empty-card" style={{ marginTop: 12 }}>Aún no hay uso registrado. Empieza a chatear para ver el uso de tokens por modelo.</div>
         ) : (
           <div style={{ marginTop: 14 }}>
             {rows.map(([model, u]) => {
@@ -304,7 +304,7 @@ function UsagePanel({
                   <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4, gap: 12 }}>
                     <span style={{ fontSize: 12.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{model}</span>
                     <span className="row-desc" style={{ flex: "0 0 auto" }}>
-                      {fmtTokens(u.promptTokens)} in · {fmtTokens(u.completionTokens)} out · {u.requests} req
+                      {fmtTokens(u.promptTokens)} ent · {fmtTokens(u.completionTokens)} sal · {u.requests} req
                     </span>
                   </div>
                   <div className="index-bar"><div className="index-bar-fill" style={{ width: `${Math.max(2, Math.round((total / max) * 100))}%` }} /></div>
@@ -315,29 +315,29 @@ function UsagePanel({
         )}
         <div className="index-actions">
           <button className="btn-secondary" onClick={() => vscode.postMessage({ type: "getUsage" })}>
-            <Icon name="reset" /> Refresh
+            <Icon name="reset" /> Actualizar
           </button>
           <button
             className="btn-secondary danger"
             disabled={rows.length === 0}
-            onClick={() => { if (confirm("Reset all recorded token usage?")) vscode.postMessage({ type: "resetUsage" }); }}
+            onClick={() => { if (confirm("¿Restablecer todo el uso de tokens registrado?")) vscode.postMessage({ type: "resetUsage" }); }}
           >
-            <Icon name="trash" /> Reset Usage
+            <Icon name="trash" /> Restablecer uso
           </button>
         </div>
       </div>
 
       <Group>
-        <Row title="Track Usage" desc="Record per-model token usage locally. No data ever leaves your machine.">
+        <Row title="Registrar uso" desc="Registra el uso de tokens por modelo localmente. Ningún dato sale de tu máquina.">
           <Toggle checked={features.trackUsage !== false} onChange={(v) => setFeatures({ trackUsage: v })} />
         </Row>
       </Group>
 
-      <div className="section-label">Account Quota</div>
-      <p className="panel-hint">Rate-limit windows for your connected OAuth accounts ({oauthStatus.accounts.map((a) => OAUTH_LABEL[a.kind]).join(", ") || "none connected"}).</p>
+      <div className="section-label">Cuenta de quota</div>
+      <p className="panel-hint">Ventanas de límite de velocidad para tus cuentas OAuth conectadas ({oauthStatus.accounts.map((a) => OAUTH_LABEL[a.kind]).join(", ") || "ninguna conectada"}).</p>
       {oauthStatus.accounts.length === 0 ? (
         <div className="empty-card">
-          No OAuth accounts connected. Add one in the <strong>Providers → OAuth Accounts</strong> tab to see its quota here.
+          No hay cuentas OAuth conectadas. Añade una en la pestaña <strong>Proveedores → Cuentas OAuth</strong> para ver su cuota aquí.
         </div>
       ) : (
         oauthStatus.accounts.map((a) => <OAuthAccountCard key={a.id} account={a} defaultOpen />)
@@ -396,9 +396,9 @@ function DocRow({ d, status }: { d: DocSourceInfo; status: DocsStatus }) {
     return (
       <div className="doc-row editing">
         <div className="doc-add-row" style={{ flex: 1, margin: 0 }}>
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Name" />
+          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nombre" />
           <input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://…" onKeyDown={(e) => e.key === "Enter" && save()} />
-          <input type="number" min={1} style={{ width: 80 }} title="Max pages" value={maxPages} onChange={(e) => setMaxPages(e.target.value)} />
+          <input type="number" min={1} style={{ width: 80 }} title="Máx. páginas" value={maxPages} onChange={(e) => setMaxPages(e.target.value)} />
           <button className="btn-secondary" onClick={save}><Icon name="check" /></button>
           <button className="btn-secondary" onClick={() => { setEditing(false); setName(d.name); setUrl(d.url); setMaxPages(String(d.maxPages || 200)); }}><Icon name="close" /></button>
         </div>
@@ -413,26 +413,26 @@ function DocRow({ d, status }: { d: DocSourceInfo; status: DocsStatus }) {
           <div className="doc-name">{d.name}</div>
           <div className={"doc-sub" + (d.error ? " error" : "")}>
             {busy
-              ? `Indexing ${status.done}/${status.total} pages…`
+              ? `Indexando ${status.done}/${status.total} páginas…`
               : d.error
-              ? `Failed: ${d.error}`
+              ? `Error: ${d.error}`
               : d.indexedAt
-              ? `Indexed ${new Date(d.indexedAt).toLocaleDateString()}, ${new Date(d.indexedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })} · ${d.pages ?? 0} pages`
-              : "Not indexed"}
+              ? `Indexado ${new Date(d.indexedAt).toLocaleDateString()}, ${new Date(d.indexedAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })} · ${d.pages ?? 0} páginas`
+              : "Sin indexar"}
           </div>
         </div>
         <div className="doc-actions">
-          <button className={"icon-btn" + (showLogs ? " active" : "")} title="Logs" onClick={() => setShowLogs((v) => !v)}><Icon name="terminal" /></button>
-          <button className="icon-btn" title="Edit" disabled={busy} onClick={() => setEditing(true)}><Icon name="edit" /></button>
-          <button className="icon-btn" title="Re-index" disabled={!!status.indexing} onClick={() => vscode.postMessage({ type: "reindexDoc", id: d.id })}><Icon name="reset" /></button>
-          <button className="icon-btn" title="Open docs site" onClick={() => vscode.postMessage({ type: "openExternal", url: d.url })}><Icon name="book" /></button>
-          <button className="icon-btn" title="Remove" disabled={busy} onClick={() => vscode.postMessage({ type: "removeDoc", id: d.id })}><Icon name="trash" /></button>
+          <button className={"icon-btn" + (showLogs ? " active" : "")} title="Registros" onClick={() => setShowLogs((v) => !v)}><Icon name="terminal" /></button>
+          <button className="icon-btn" title="Editar" disabled={busy} onClick={() => setEditing(true)}><Icon name="edit" /></button>
+          <button className="icon-btn" title="Reindexar" disabled={!!status.indexing} onClick={() => vscode.postMessage({ type: "reindexDoc", id: d.id })}><Icon name="reset" /></button>
+          <button className="icon-btn" title="Abrir sitio de documentación" onClick={() => vscode.postMessage({ type: "openExternal", url: d.url })}><Icon name="book" /></button>
+          <button className="icon-btn" title="Eliminar" disabled={busy} onClick={() => vscode.postMessage({ type: "removeDoc", id: d.id })}><Icon name="trash" /></button>
         </div>
       </div>
       {showLogs && (
         <div className="doc-logs">
           {logs.length === 0 ? (
-            <div className="doc-logs-empty">No logs yet — logs appear while indexing (kept until the next re-index).</div>
+            <div className="doc-logs-empty">Aún no hay registros — aparecen durante la indexación (se conservan hasta la siguiente reindexación).</div>
           ) : (
             logs.map((l, i) => (
               <div key={i} className={"doc-log-line" + (/ (SKIP|FAIL|FAILED)/.test(l) ? " err" : "")}>{l}</div>
@@ -462,24 +462,24 @@ function DocsSection({ docs, status }: { docs: DocSourceInfo[]; status: DocsStat
     <>
       <div className="docs-head">
         <div>
-          <div className="section-label" style={{ marginBottom: 2 }}>Docs</div>
-          <div className="row-desc" style={{ margin: 0 }}>Crawl and index custom resources and developer docs</div>
+          <div className="section-label" style={{ marginBottom: 2 }}>Documentación</div>
+          <div className="row-desc" style={{ margin: 0 }}>Rastrear e indexar recursos personalizados y documentación de desarrolladores</div>
         </div>
         <button className="btn-secondary" onClick={() => setAdding((a) => !a)}>
-          <Icon name="plus" /> Add Doc
+          <Icon name="plus" /> Añadir documentación
         </button>
       </div>
       <div className="index-card docs-card">
         {adding && (
           <div className="doc-add-row">
-            <input autoFocus placeholder="Name (e.g. React)" value={name} onChange={(e) => setName(e.target.value)} />
+            <input autoFocus placeholder="Nombre (p. ej. React)" value={name} onChange={(e) => setName(e.target.value)} />
             <input placeholder="https://react.dev/reference" value={url} onChange={(e) => setUrl(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()} />
-            <input type="number" min={1} style={{ width: 80 }} title="Max pages to crawl" value={maxPages} onChange={(e) => setMaxPages(e.target.value)} />
-            <button className="btn-secondary" disabled={!canAdd} onClick={add}><Icon name="plus" /> Add</button>
+            <input type="number" min={1} style={{ width: 80 }} title="Máx. páginas a rastrear" value={maxPages} onChange={(e) => setMaxPages(e.target.value)} />
+            <button className="btn-secondary" disabled={!canAdd} onClick={add}><Icon name="plus" /> Añadir</button>
           </div>
         )}
         {docs.length === 0 && !adding ? (
-          <p className="row-desc" style={{ padding: "10px 4px", margin: 0 }}>No docs added yet. Click "Add Doc" to crawl and index documentation from a URL.</p>
+          <p className="row-desc" style={{ padding: "10px 4px", margin: 0 }}>Aún no hay documentación añadida. Haz clic en "Añadir documentación" para rastrear e indexar documentación desde una URL.</p>
         ) : (
           docs.map((d) => <DocRow key={d.id} d={d} status={status} />)
         )}
@@ -512,13 +512,13 @@ function IndexingPanel({
   const remoteEmbed = modelList.filter((m) => isEmbeddingModel(m.id));
   return (
     <>
-      <h1 className="page-title">Indexing &amp; Docs</h1>
-      <div className="section-label">Codebase</div>
+      <h1 className="page-title">Indexación y documentos</h1>
+      <div className="section-label">Código base</div>
       <div className="index-card">
-        <div className="index-card-title">Codebase Indexing</div>
+        <div className="index-card-title">Indexación del código base</div>
         <p className="row-desc">
-          Embed codebase for improved contextual understanding and knowledge. Embeddings and metadata are
-          stored locally on your machine — your code never leaves your computer.
+          Generar embeddings del código base para una mejor comprensión contextual y conocimiento. Los embeddings y metadatos se
+          almacenan localmente en tu máquina — tu código nunca sale de tu computadora.
         </p>
         <div className="index-progress">
           <div className="index-progress-pct">{pct}%</div>
@@ -526,37 +526,37 @@ function IndexingPanel({
             <div className="index-bar-fill" style={{ width: `${pct}%` }} />
           </div>
           <div className="index-progress-meta">
-            {status.indexing ? `Indexing ${status.done} / ${status.total} files…` : `${status.files} files`}
+            {status.indexing ? `Indexando ${status.done} / ${status.total} archivos…` : `${status.files} archivos`}
           </div>
         </div>
         <div className="index-divider" />
         <div className="index-model-row">
-          <span className="index-model-label">Embedding model</span>
+          <span className="index-model-label">Modelo de embeddings</span>
           <ModelSelect
             models={remoteEmbed}
             value={status.model}
             onChange={(id) => !status.indexing && vscode.postMessage({ type: "setEmbedModel", modelId: id })}
-            customItems={models.map((m) => ({ value: m.id, label: m.name, desc: "local — runs on your machine" }))}
+            customItems={models.map((m) => ({ value: m.id, label: m.name, desc: "local — se ejecuta en tu máquina" }))}
             style={{ maxWidth: 260 }}
           />
           <div className="index-actions" style={{ marginTop: 0, marginLeft: "auto" }}>
             <button className="btn-secondary" disabled={status.indexing} onClick={() => vscode.postMessage({ type: "syncIndex" })}>
-              <Icon name="reset" /> {status.indexing ? "Syncing…" : "Sync"}
+              <Icon name="reset" /> {status.indexing ? "Sincronizando…" : "Sincronizar"}
             </button>
             <button className="btn-secondary danger" disabled={status.indexing} onClick={() => vscode.postMessage({ type: "deleteIndex" })}>
-              <Icon name="trash" /> Delete Index
+              <Icon name="trash" /> Eliminar índice
             </button>
           </div>
         </div>
       </div>
       <div className="index-card rows-card">
-        <Row title="Index New Folders" desc="Automatically index any new folders added to the workspace">
+        <Row title="Indexar carpetas nuevas" desc="Indexar automáticamente cualquier carpeta nueva añadida al workspace">
           <Toggle checked={features.indexNewFolders !== false} onChange={(v) => setFeatures({ indexNewFolders: v })} />
         </Row>
-        <Row title="Ignore Files in .cursorignore" desc="Files to exclude from indexing in addition to .gitignore">
-          <button className="btn-secondary" onClick={() => vscode.postMessage({ type: "mijoCodeIgnore" })}>Edit</button>
+        <Row title="Ignorar archivos en .cursorignore" desc="Archivos a excluir de la indexación además de .gitignore">
+          <button className="btn-secondary" onClick={() => vscode.postMessage({ type: "mijoCodeIgnore" })}>Editar</button>
         </Row>
-        <Row title="Index Repositories for Instant Grep" desc="Automatically index repositories to speed up Grep searches. All data is stored locally.">
+        <Row title="Indexar repositorios para Grep instantáneo" desc="Indexar automáticamente repositorios para acelerar las búsquedas con Grep. Todos los datos se almacenan localmente.">
           <Toggle checked={features.indexForGrep !== false} onChange={(v) => setFeatures({ indexForGrep: v })} />
         </Row>
       </div>
@@ -675,13 +675,13 @@ export function App() {
           <img className="brand-badge" src={document.getElementById("root")?.dataset.icon} alt="" />
           <span>
             <span className="brand-name">Mijo Code</span>
-            <span className="brand-sub">Local · Open Source</span>
+            <span className="brand-sub">Local · Código abierto</span>
           </span>
         </div>
         <input
           className="nav-search"
           type="search"
-          placeholder="Search settings"
+          placeholder="Buscar configuración"
           value={navQuery}
           onChange={(e) => setNavQuery(e.target.value)}
         />
@@ -695,7 +695,7 @@ export function App() {
             {n.id === "general" && !navQuery && (
               <button className="nav-item" onClick={() => vscode.postMessage({ type: "openVsCodeSettings" })}>
                 <Icon name="code" />
-                <span>VS Code Settings ↗</span>
+                <span>Configuración de VS Code ↗</span>
               </button>
             )}
           </React.Fragment>
@@ -709,23 +709,23 @@ export function App() {
               <h1 className="page-title">General</h1>
 
               <Group>
-                <Row title="Providers & API Keys" desc="Manage the AI providers, API keys and OAuth accounts this extension talks to.">
-                  <button className="btn-secondary" onClick={() => setSection("providers")}>Open</button>
+                <Row title="Proveedores y claves API" desc="Gestionar los proveedores de IA, claves API y cuentas OAuth con los que habla esta extensión.">
+                  <button className="btn-secondary" onClick={() => setSection("providers")}>Abrir</button>
                 </Row>
               </Group>
 
-              <div className="section-label">Preferences</div>
+              <div className="section-label">Preferencias</div>
               <Group>
-                <Row title="Editor Settings" desc="Configure font, formatting, minimap and more.">
-                  <button className="btn-secondary" onClick={() => vscode.postMessage({ type: "openEditorSettings" })}>Open ↗</button>
+                <Row title="Configuración del editor" desc="Configurar fuente, formato, minimapa y más.">
+                  <button className="btn-secondary" onClick={() => vscode.postMessage({ type: "openEditorSettings" })}>Abrir ↗</button>
                 </Row>
-                <Row title="Keyboard Shortcuts" desc="Configure keyboard shortcuts.">
-                  <button className="btn-secondary" onClick={() => vscode.postMessage({ type: "openKeyboardShortcuts" })}>Open ↗</button>
+                <Row title="Atajos de teclado" desc="Configurar atajos de teclado.">
+                  <button className="btn-secondary" onClick={() => vscode.postMessage({ type: "openKeyboardShortcuts" })}>Abrir ↗</button>
                 </Row>
-                <Row title="VS Code Settings" desc="Open the native VS Code settings UI.">
-                  <button className="btn-secondary" onClick={() => vscode.postMessage({ type: "openVsCodeSettings" })}>Open ↗</button>
+                <Row title="Configuración de VS Code" desc="Abrir la interfaz nativa de configuración de VS Code.">
+                  <button className="btn-secondary" onClick={() => vscode.postMessage({ type: "openVsCodeSettings" })}>Abrir ↗</button>
                 </Row>
-                <Row title="Language" desc="Interface language (requires reload).">
+                <Row title="Idioma" desc="Idioma de la interfaz (requiere recargar).">
                   <select
                     value={features.language || "en"}
                     onChange={(e) => {
@@ -743,7 +743,7 @@ export function App() {
 
               <div className="section-label">Chat</div>
               <Group>
-                <Row title="Auto-Generate Chat Titles" desc="Generate a short AI title for new conversations after the first message.">
+                <Row title="Generar títulos de chat automáticamente" desc="Generar un título corto con IA para nuevas conversaciones después del primer mensaje.">
                   <Toggle checked={features.autoGenerateTitles !== false} onChange={(v) => setFeatures({ autoGenerateTitles: v })} />
                 </Row>
                 {/* Auto model (judge routing) hidden for now — bring back later.
@@ -759,36 +759,36 @@ export function App() {
                 */}
               </Group>
 
-              <div className="section-label">Notifications</div>
+              <div className="section-label">Notificaciones</div>
               <Group>
-                <Row title="System Notifications" desc="Show a notification when the agent finishes responding while the window is unfocused.">
+                <Row title="Notificaciones del sistema" desc="Mostrar una notificación cuando el agente termine de responder mientras la ventana no está enfocada.">
                   <Toggle checked={features.notifyOnComplete !== false} onChange={(v) => setFeatures({ notifyOnComplete: v })} />
                 </Row>
-                <Row title="Completion Sound" desc="Play a sound when the agent finishes responding.">
+                <Row title="Sonido de finalización" desc="Reproducir un sonido cuando el agente termine de responder.">
                   <Toggle checked={features.completionSound === true} onChange={(v) => setFeatures({ completionSound: v })} />
                 </Row>
               </Group>
 
-              <div className="section-label">Privacy</div>
+              <div className="section-label">Privacidad</div>
               <p className="panel-hint">
-                Mijo Code is fully local and open source. There is no Mijo Code backend - your code,
-                keys and conversations stay on your machine and are only ever sent to the AI providers
-                you configure yourself.
+                Mijo Code es completamente local y de código abierto. No hay backend de Mijo Code: tu código,
+                claves y conversaciones permanecen en tu máquina y solo se envían a los proveedores de IA
+                que tú configures.
               </p>
               <Group>
-                <Row title="Local-First" desc="Conversations, settings and workspace context are stored on this device (VS Code global storage).">
-                  <span className="badge-tag always">Always on</span>
+                <Row title="Local primero" desc="Las conversaciones, configuración y contexto del workspace se almacenan en este dispositivo (almacenamiento global de VS Code).">
+                  <span className="badge-tag always">Siempre activo</span>
                 </Row>
-                <Row title="Secure Key Storage" desc="API keys and OAuth tokens are kept in the OS secret store (VS Code SecretStorage), never in plain-text settings or synced files.">
-                  <span className="badge-tag always">Encrypted</span>
+                <Row title="Almacenamiento seguro de claves" desc="Las claves API y tokens OAuth se guardan en el almacén de secretos del sistema (VS Code SecretStorage), nunca en archivos de configuración en texto plano ni sincronizados.">
+                  <span className="badge-tag always">Encriptado</span>
                 </Row>
-                <Row title="No Telemetry" desc="Mijo Code collects no analytics, usage metrics or crash reports. The only outbound requests are the AI calls you trigger to your configured providers.">
-                  <span className="badge-tag always">None</span>
+                <Row title="Sin telemetría" desc="Mijo Code no recopila análisis, métricas de uso ni informes de errores. Las únicas solicitudes salientes son las llamadas a IA que disparas a tus proveedores configurados.">
+                  <span className="badge-tag always">Ninguna</span>
                 </Row>
-                <Row title="You Choose the Destination" desc="Every request goes to the exact provider you set up — a hosted API, your own OpenAI/Anthropic-compatible endpoint, or a fully offline model via llama.cpp / Ollama.">
-                  <span className="badge-tag">Your providers</span>
+                <Row title="Tú eliges el destino" desc="Cada solicitud va al proveedor exacto que configuraste — una API alojada, tu propio endpoint compatible con OpenAI/Anthropic, o un modelo completamente offline mediante llama.cpp / Ollama.">
+                  <span className="badge-tag">Tus proveedores</span>
                 </Row>
-                <Row title="Open Source" desc="The full source is public and MIT-licensed, so anyone can audit exactly what the extension does with your data.">
+                <Row title="Código abierto" desc="El código completo es público y con licencia MIT, así que cualquiera puede auditar exactamente qué hace la extensión con tus datos.">
                   <span className="badge-tag glob">MIT</span>
                 </Row>
               </Group>
@@ -797,63 +797,63 @@ export function App() {
 
           {section === "agents" && (
             <>
-              <h1 className="page-title">Agents</h1>
+              <h1 className="page-title">Agentes</h1>
 
               <Group>
-                <Row title="Text Size" desc="Adjust the conversation text size.">
+                <Row title="Tamaño del texto" desc="Ajustar el tamaño del texto de la conversación.">
                   <select
                     value={features.chatTextSize || "default"}
                     onChange={(e) => setFeatures({ chatTextSize: e.target.value as FeatureConfig["chatTextSize"] })}
                   >
-                    <option value="compact">Compact</option>
-                    <option value="default">Default</option>
-                    <option value="large">Large</option>
+                    <option value="compact">Compacto</option>
+                    <option value="default">Predeterminado</option>
+                    <option value="large">Grande</option>
                   </select>
                 </Row>
-                <Row title="Submit with Ctrl + Enter" desc="When enabled, Ctrl + Enter submits chat and Enter inserts a newline.">
+                <Row title="Enviar con Ctrl + Enter" desc="Cuando está activado, Ctrl + Enter envía el chat y Enter inserta una nueva línea.">
                   <Toggle checked={features.submitWithCtrlEnter === true} onChange={(v) => setFeatures({ submitWithCtrlEnter: v })} />
                 </Row>
-                <Row title="Max Tab Count" desc="Limit how many chat tabs can be open at once (0 = unlimited).">
+                <Row title="Máx. número de pestañas" desc="Limitar cuántas pestañas de chat pueden estar abiertas a la vez (0 = ilimitado).">
                   <NumInput value={features.maxTabCount || null} step="1" min="0" placeholder="unlimited" onChange={(v) => setFeatures({ maxTabCount: v ?? 0 })} />
                 </Row>
               </Group>
 
-              <div className="section-label">Run Limits</div>
+              <div className="section-label">Límites de ejecución</div>
               <Group>
-                <Row title="Max Agent Steps" desc="Pause the agent after this many steps in a single run (0 = default 50).">
+                <Row title="Máx. pasos del agente" desc="Pausar el agente después de esta cantidad de pasos en una ejecución (0 = 50 por defecto).">
                   <NumInput value={features.maxAgentSteps || null} step="1" min="0" placeholder="50" onChange={(v) => setFeatures({ maxAgentSteps: v ?? 0 })} />
                 </Row>
-                <Row title="Auto Continue" desc="Automatically continue when the step limit is reached instead of pausing.">
+                <Row title="Continuar automáticamente" desc="Continuar automáticamente cuando se alcance el límite de pasos en lugar de pausar.">
                   <Toggle checked={features.autoContinue === true} onChange={(v) => setFeatures({ autoContinue: v })} />
                 </Row>
               </Group>
 
-              <div className="section-label">Subagents</div>
+              <div className="section-label">Subagentes</div>
               <Group>
-                <Row title="Subagent Model" desc="Default model for subagents launched via the Task tool.">
+                <Row title="Modelo de subagente" desc="Modelo predeterminado para subagentes lanzados mediante la herramienta Task.">
                   <ModelSelect
                     models={modelList}
                     value={features.subagentModel}
                     onChange={(id) => setFeatures({ subagentModel: id })}
-                    customItems={[{ value: "", label: "Inherit chat model", desc: "use whatever the chat uses" }]}
+                    customItems={[{ value: "", label: "Heredar modelo del chat", desc: "usar el mismo que el chat" }]}
                     style={{ maxWidth: 240 }}
                   />
                 </Row>
               </Group>
 
-              <div className="section-label">Context</div>
+              <div className="section-label">Contexto</div>
               <Group>
-                <Row title="Web Search Tool" desc="Allow the agent to search the web for relevant information.">
+                <Row title="Herramienta de búsqueda web" desc="Permitir que el agente busque información relevante en la web.">
                   <Toggle checked={features.webSearchEnabled !== false} onChange={(v) => setFeatures({ webSearchEnabled: v })} />
                 </Row>
-                <Row title="Web Fetch Tool" desc="Allow the agent to fetch content from URLs.">
+                <Row title="Herramienta de consulta web" desc="Permitir que el agente obtenga contenido de URLs.">
                   <Toggle checked={features.webFetchEnabled !== false} onChange={(v) => setFeatures({ webFetchEnabled: v })} />
                 </Row>
               </Group>
 
-              <div className="section-label">Approvals &amp; Execution</div>
+              <div className="section-label">Aprobaciones y ejecución</div>
               <p className="panel-hint">
-                Tool capabilities and approval gates live in the <button className="link-btn" onClick={() => setSection("behavior")}>Behavior</button> tab.
+                Las capacidades de herramientas y los controles de aprobación están en la pestaña <button className="link-btn" onClick={() => setSection("behavior")}>Comportamiento</button>.
               </p>
             </>
           )}
@@ -899,19 +899,19 @@ export function App() {
 
           {section === "behavior" && (
             <>
-              <h1 className="page-title">Behavior</h1>
-              <div className="section-label">Capabilities</div>
+              <h1 className="page-title">Comportamiento</h1>
+              <div className="section-label">Capacidades</div>
               <Group>
-                <Row title="Workspace Context" desc="Include workspace info in the agent's context.">
+                <Row title="Contexto del workspace" desc="Incluir información del workspace en el contexto del agente.">
                   <Toggle checked={s.enableWorkspaceContext} onChange={(v) => set("enableWorkspaceContext", v)} />
                 </Row>
-                <Row title="File Reading Tools" desc="Allow reading, searching and listing files.">
+                <Row title="Herramientas de lectura de archivos" desc="Permitir leer, buscar y listar archivos.">
                   <Toggle checked={s.enableFileReading} onChange={(v) => set("enableFileReading", v)} />
                 </Row>
-                <Row title="Terminal Tools" desc="Allow running terminal commands.">
+                <Row title="Herramientas de terminal" desc="Permitir ejecutar comandos de terminal.">
                   <Toggle checked={s.enableTerminalSuggestions} onChange={(v) => set("enableTerminalSuggestions", v)} />
                 </Row>
-                <Row title="Max Context Tokens" desc="Hard cap on context tokens sent in a request (prevents provider limit errors).">
+                <Row title="Máx. tokens de contexto" desc="Límite máximo de tokens de contexto enviados en una solicitud (evita errores de límite del proveedor).">
                   <input
                     type="number"
                     min={1024}
@@ -923,11 +923,11 @@ export function App() {
                 </Row>
               </Group>
 
-              <div className="section-label">Approvals &amp; Execution</div>
+              <div className="section-label">Aprobaciones y ejecución</div>
               <p className="panel-hint">
-                Per-action approval policy. <strong>Allow</strong> runs silently, <strong>Auto Review</strong> only asks
-                for risky-looking actions (destructive commands, secrets, deletes), <strong>Ask</strong> prompts every
-                time, <strong>Deny</strong> always blocks. Allow/deny lists override the mode per command or file pattern.
+                Política de aprobación por acción. <strong>Permitir</strong> ejecuta en silencio, <strong>Revisión automática</strong> solo pregunta
+                por acciones de aspecto arriesgado (comandos destructivos, secretos, eliminaciones), <strong>Preguntar</strong> pregunta cada
+                vez, <strong>Denegar</strong> bloquea siempre. Las listas de permisos/denegación anulan el modo por comando o patrón de archivo.
               </p>
               {APPROVAL_ACTIONS.map((a) => (
                 <ApprovalCard
@@ -942,7 +942,7 @@ export function App() {
                   className="btn-ghost sm"
                   onClick={() => setFeatures({ approvalPolicy: DEFAULT_APPROVAL })}
                 >
-                  <Icon name="reset" size={13} /> Reset policy to defaults
+                  <Icon name="reset" size={13} /> Restablecer política a valores predeterminados
                 </button>
               </div>
             </>
@@ -954,9 +954,9 @@ export function App() {
 
           {section === "advanced" && (
             <>
-              <h1 className="page-title">Advanced</h1>
-              <div className="section-label">Custom Instructions</div>
-              <Row title="System Prompt" desc="Prepended to the agent's system prompt for every request." stacked>
+              <h1 className="page-title">Avanzado</h1>
+              <div className="section-label">Instrucciones personalizadas</div>
+              <Row title="System prompt" desc="Se antepone al system prompt del agente en cada solicitud." stacked>
                 <textarea rows={6} value={s.systemPrompt} onChange={(e) => set("systemPrompt", e.target.value)} />
               </Row>
             </>
@@ -964,29 +964,29 @@ export function App() {
 
           {section === "about" && (
             <>
-              <h1 className="page-title">About</h1>
+              <h1 className="page-title">Acerca de</h1>
               <div style={{ display: "flex", alignItems: "center", gap: 14, margin: "6px 0 18px" }}>
                 <img src={document.getElementById("root")?.dataset.icon} alt="" style={{ width: 48, height: 48, borderRadius: 10 }} />
                 <div>
                   <div style={{ fontSize: 16, fontWeight: 600 }}>Mijo Code</div>
-                  <div className="row-desc" style={{ margin: 0 }}>AI coding agent chat inside VS Code — local, open source.</div>
+                  <div className="row-desc" style={{ margin: 0 }}>Chat con agente de codificación con IA dentro de VS Code — local y de código abierto.</div>
                 </div>
               </div>
               <Group>
-                <Row title="Author" desc="Created by Mijo Code.">
+                <Row title="Autor" desc="Creado por Mijo Code.">
                   <button className="btn-secondary" onClick={() => vscode.postMessage({ type: "openExternal", url: "https://mijocode.com" })}>GitHub ↗</button>
                 </Row>
-                <Row title="Repository" desc="Source code, issues and contributions.">
-                  <button className="btn-secondary" onClick={() => vscode.postMessage({ type: "openExternal", url: "https://github.com/mijocode/mijo-code" })}>Open ↗</button>
+                <Row title="Repositorio" desc="Código fuente, problemas y contribuciones.">
+                  <button className="btn-secondary" onClick={() => vscode.postMessage({ type: "openExternal", url: "https://github.com/mijocode/mijo-code" })}>Abrir ↗</button>
                 </Row>
-                <Row title="Report an Issue" desc="Found a bug or have a feature request?">
-                  <button className="btn-secondary" onClick={() => vscode.postMessage({ type: "openExternal", url: "https://github.com/mijocode/mijo-code/issues" })}>Issues ↗</button>
+                <Row title="Reportar un problema" desc="¿Encontraste un error o tienes una solicitud de función?">
+                  <button className="btn-secondary" onClick={() => vscode.postMessage({ type: "openExternal", url: "https://github.com/mijocode/mijo-code/issues" })}>Problemas ↗</button>
                 </Row>
-                <Row title="License" desc="Free and open source under the MIT License.">
+                <Row title="Licencia" desc="Gratuito y de código abierto bajo la licencia MIT.">
                   <span className="badge-tag glob">MIT</span>
                 </Row>
               </Group>
-              <p className="panel-hint">Copyright © 2026 Mijo Code. Licensed under the MIT License.</p>
+              <p className="panel-hint">Copyright © 2026 Mijo Code. Licenciado bajo la licencia MIT.</p>
             </>
           )}
 
@@ -994,7 +994,7 @@ export function App() {
       </main>
 
       <button className="btn-save" onClick={save}>
-        Save
+        Guardar
       </button>
     </div>
   );

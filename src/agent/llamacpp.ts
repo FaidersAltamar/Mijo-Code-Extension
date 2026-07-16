@@ -23,6 +23,7 @@ import * as os from "os";
 import * as net from "net";
 import { spawn, execFile } from "child_process";
 import * as vscode from "vscode";
+import { fetchWithTimeout } from "./provider";
 import { importRuntimeDep } from "../runtimeDeps";
 
 /**
@@ -471,7 +472,7 @@ function spawnServer(m: LlamacppModel, cfg: LlamacppServerConfig, host: string, 
       if (resolved) return;
       if (!running.has(m.id)) return; // exited
       try {
-        const r = await fetch(healthUrl);
+        const r = await fetchWithTimeout(healthUrl, { timeoutMs: 5_000 });
         if (r.ok) {
           resolved = true;
           loading.delete(m.id);

@@ -31,8 +31,21 @@ const MULTITASK_REMINDER =
 
 const MAX_STEPS = 50;
 
+/** Detect text that narrates an intended tool call instead of actually calling it. */
+function looksLikeToolNarration(text: string): boolean {
+	const t = text.trim().toLowerCase();
+	if (t.length === 0) return false;
+	// Single-word filler that does not answer the user.
+	if (/^(voy a|vamos|ahora|continúo|continuamos|buscando|generating|working|thinking|ok|okay|de acuerdo|entendido|perfecto|bien|listo|siguiente)\b/i.test(t)) return true;
+	// Phrases that announce a tool action.
+	if (/(voy a ejecutar|voy a buscar|voy a leer|voy a escribir|voy a crear|voy a enviar|voy a usar|voy a llamar|let me|i will|i'm going to|i am going to)\s/i.test(t)) return true;
+	// Tool-name narration (e.g. "Read para es, fr, pt").
+	if (/\b(read|grep|glob|shell|edit|delete|search|fetch|write|execute)\b.*\b(para|for|ahora|now)\b/i.test(t)) return true;
+	return false;
+}
+
 export async function runAgent(opts: RunAgentOptions): Promise<void> {
-	const { apiBaseUrl, apiKey, model, prompt, attachments, history, maxTokens, maxSteps, autoContinue, contextTokens, sampling, modelParams, anthropic, oauthKind, systemPromptOverride, extraInstructions, enableFileReading, enableTerminalSuggestions, enableWorkspaceContext, approve, isSubagent, customSubagents, subagentModel, registerSubagentAbort, askUser, onAfterRun, onBeforeShell, onAfterEdit, onHook, signal, emit } = opts;
+	const { apiBaseUrl, apiKey, model, prompt, attachments, history, maxTokens, maxSteps, contextTokens, sampling, modelParams, anthropic, oauthKind, systemPromptOverride, extraInstructions, enableFileReading, enableTerminalSuggestions, enableWorkspaceContext, approve, isSubagent, customSubagents, subagentModel, registerSubagentAbort, askUser, onAfterRun, onBeforeShell, onAfterEdit, onHook, signal, emit } = opts;
 	// Mutable so the SwitchMode tool can change it mid-run.
 	let mode = opts.mode;
 	// multitask is agentic (full tool access); treat it like agent for gating.
@@ -210,6 +223,12 @@ export async function runAgent(opts: RunAgentOptions): Promise<void> {
 		let planNudged = false;
 		// One-shot nudge when the model stops with unfinished todos.
 		let todoNudged = false;
+		// Anti-narration guard: force tool_choice="required" after the first narration nudge and give up after too many loops.
+		let narrationNudges = 0;
+		const MAX_NARRATION_NUDGES = 2;
+		let requireTools = false;
+		// Loop-repetition guard: if the last few assistant texts are identical (ignoring case/punctuation), stop to avoid visual spam.
+		const recentAssistantTexts: string[] = [];
 
 		// Feed already-finished (but unreported) background subagent results into the
 		// conversation, so the model always knows what has completed. Returns count.
@@ -222,7 +241,7 @@ export async function runAgent(opts: RunAgentOptions): Promise<void> {
 			if (done.length) {
 				history.push({
 					kind: "user",
-					text: `[System: Background subagent${done.length > 1 ? "s" : ""} finished — results below.]\n\n${done.map((v) => `### ${v.title}\n${v.text}`).join("\n\n")}`,
+					text: `[System: Subagente${done.length > 1 ? "s" : ""} en segundo plano finalizado${done.length > 1 ? "s" : ""} — resultados abajo.]\n\n${done.map((v) => `### ${v.title}\n${v.text}`).join("\n\n")}`,
 				});
 			}
 			return done.length;
@@ -257,12 +276,20 @@ export async function runAgent(opts: RunAgentOptions): Promise<void> {
 			return text.trim();
 		};
 
-		const stepLimit = maxSteps && maxSteps > 0 ? maxSteps : MAX_STEPS;
-		let hitStepLimit = false;
+		let stepLimit = maxSteps && maxSteps > 0 ? maxSteps : MAX_STEPS;
 		for (let step = 0; ; step++) {
-			if (!autoContinue && step >= stepLimit) {
-				hitStepLimit = true;
-				break;
+			// Never pause for the step limit: auto-resume and nudge the model to keep
+			// working until the task is actually finished. Only hard stop on abort or
+			// on an unrecoverable external/API error.
+			if (step >= stepLimit) {
+				const previousLimit = stepLimit;
+				stepLimit += MAX_STEPS;
+				history.push({
+					kind: "user",
+					text: "[System: Límite de pasos alcanzado, pero la tarea NO está terminada. Continúa trabajando automáticamente. No pidas confirmación al usuario, no digas que no puedes continuar y no pares hasta que la tarea esté completamente terminada. Si una herramienta falló, prueba un enfoque diferente.]",
+				});
+				emit({ type: "shell-notify", message: `Continuando automáticamente más allá del límite de pasos (${previousLimit} → ${stepLimit})…` });
+				continue;
 			}
 			if (signal.aborted) {
 				emit({ type: "run-status", status: "cancelled" });
@@ -273,9 +300,18 @@ export async function runAgent(opts: RunAgentOptions): Promise<void> {
 			// them now so it never reasons about "still running" work that's done.
 			flushSettledBg();
 
-			// Auto context management. Budget = window minus the reply reservation.
-			const budget = contextTokens && contextTokens > 0
-				? Math.max(1024, contextTokens - (maxTokens ?? 4096) - 2048)
+			// Auto context management. Budget = window minus the reply reservation
+			// and a generous safety margin. Local token estimates are rough (~4 chars/token)
+			// and provider counters differ, so we keep a 12% / 8k margin to avoid
+			// the model's hard limit and the "exceeded model token limit" 400.
+			const safetyMargin = contextTokens && contextTokens > 0
+				? Math.max(8192, Math.floor(contextTokens * 0.12))
+				: 0;
+			const effectiveContextTokens = contextTokens && contextTokens > 0
+				? Math.max(1024, contextTokens - safetyMargin)
+				: 0;
+			const budget = effectiveContextTokens > 0
+				? Math.max(1024, effectiveContextTokens - (maxTokens ?? 4096) - 2048)
 				: 0;
 			// 1) Auto-summarization (Cursor/Claude-Code style): when the conversation
 			// nears the window (80% of budget), replace the older steps with an
@@ -292,9 +328,9 @@ export async function runAgent(opts: RunAgentOptions): Promise<void> {
 					try {
 						const summary = await summarizeSteps(prefix);
 						history.length = 0;
-						history.push(
-							{ kind: "user", text: `[System: Earlier conversation was summarized to free context. Summary:]\n\n${summary}` },
-							{ kind: "assistant", text: "Understood. Continuing with the summarized context.", calls: [] },
+							history.push(
+							{ kind: "user", text: `[System: La conversación anterior se resumió para liberar contexto. Resumen:]\n\n${summary}` },
+							{ kind: "assistant", text: "Entendido. Continúo con el contexto resumido.", calls: [] },
 							...tail,
 						);
 						emit({ type: "compaction", status: "done", summary });
@@ -314,8 +350,8 @@ export async function runAgent(opts: RunAgentOptions): Promise<void> {
 				? { ...cursorCtx, reminder: mode === "multitask" ? MULTITASK_REMINDER : undefined }
 				: cursorCtx;
             // Cap prompt tokens so the response (maxTokens) fits inside the model's context window.
-            const promptTokenCap = contextTokens && contextTokens > 0
-              ? Math.max(1024, contextTokens - (maxTokens ?? 4096) - 2048)
+            const promptTokenCap = effectiveContextTokens > 0
+              ? Math.max(1024, effectiveContextTokens - (maxTokens ?? 4096) - 2048)
               : undefined;
             const messages = buildMessages(system, fitted, liveCtx, promptTokenCap);
 			let assistantText = "";
@@ -342,6 +378,7 @@ export async function runAgent(opts: RunAgentOptions): Promise<void> {
 				anthropic,
 				oauthKind,
 				signal,
+				requireTools,
 				onRetry: (attempt, max, delayMs, error) => emit({ type: "retry", attempt, max, delayMs, error }),
 			})) {
 				if (ev.type === "text-delta") {
@@ -374,9 +411,25 @@ export async function runAgent(opts: RunAgentOptions): Promise<void> {
 				}
 			}
 
-			if (assistantText.trim() || thinking) {
-				history.push({ kind: "assistant", text: assistantText, thinking: thinking || undefined, calls: [] });
+		// Repetition guard: if the assistant keeps emitting the same filler pattern,
+		// stop before the chat fills with visual spam.
+		if (isAgentic() && assistantText.trim()) {
+			const normalized = assistantText.trim().toLowerCase().replace(/[^a-z0-9áéíóúñ]+/g, " ");
+			const repeats = recentAssistantTexts.filter((t) => t === normalized || (normalized.length > 20 && (t.includes(normalized) || normalized.includes(t)))).length;
+			recentAssistantTexts.push(normalized);
+			if (recentAssistantTexts.length > 4) recentAssistantTexts.shift();
+			if (repeats >= 2) {
+				emit({ type: "error", message: "El modelo entró en un bucle repetitivo y se detuvo para evitar spam visual. Prueba a reformular la petición o usar otro modelo." });
+				emit({ type: "run-status", status: "error" });
+				return;
 			}
+		}
+
+		// Do not keep textual narration in history: it is visual noise and bloats context.
+		const isNarration = isAgentic() && !calls.length && looksLikeToolNarration(assistantText);
+		if ((assistantText.trim() || thinking) && !isNarration) {
+			history.push({ kind: "assistant", text: assistantText, thinking: thinking || undefined, calls: [] });
+		}
 
 			if (!calls.length) {
 				// Plan mode must persist a plan file. If the model tries to end without
@@ -385,7 +438,7 @@ export async function runAgent(opts: RunAgentOptions): Promise<void> {
 					planNudged = true;
 					history.push({
 						kind: "user",
-						text: "[System: You are in PLAN MODE and have not written the plan yet. Call the WritePlan tool now with a title and the complete Markdown plan. Do not respond with the plan as plain text — it must be saved via WritePlan.]",
+						text: "[System: Estás en MODO PLAN y aún no has escrito el plan. Llama a la herramienta WritePlan ahora con un título y el plan completo en Markdown. No respondas con el plan como texto plano — debe guardarse mediante WritePlan.]",
 					});
 					continue;
 				}
@@ -394,7 +447,7 @@ export async function runAgent(opts: RunAgentOptions): Promise<void> {
 				if (isAgentic() && /length|max_tokens|max_output_tokens/i.test(finishReason)) {
 					history.push({
 						kind: "user",
-						text: "[System: Your previous response was cut off because it hit the output-token limit. Continue exactly where you left off; re-issue any tool call that was truncated.]",
+						text: "[System: Tu respuesta anterior se cortó porque alcanzó el límite de tokens de salida. Continúa exactamente donde te quedaste; vuelve a emitir cualquier llamada a herramienta que se haya truncado.]",
 					});
 					continue;
 				}
@@ -403,7 +456,7 @@ export async function runAgent(opts: RunAgentOptions): Promise<void> {
 				if (isAgentic() && !assistantText.trim() && thinking.trim()) {
 					history.push({
 						kind: "user",
-						text: "[System: You produced only internal reasoning with no answer or tool calls. Continue working on the task now — make the necessary tool calls, or reply with your final answer if fully finished.]",
+						text: "[System: Produciste solo razonamiento interno sin respuesta ni llamadas a herramientas. Continúa trabajando en la tarea ahora — realiza las llamadas a herramientas necesarias, o responde con tu respuesta final si ya terminaste por completo.]",
 					});
 					continue;
 				}
@@ -413,7 +466,7 @@ export async function runAgent(opts: RunAgentOptions): Promise<void> {
 				if (isAgentic() && !assistantText.trim() && !thinking.trim() && prev && prev.kind === "tool-result") {
 					history.push({
 						kind: "user",
-						text: "[System: If you need to make more tool calls to complete the task, please do so now. If you are fully finished, reply normally without calling any tools.]",
+						text: "[System: Si necesitas hacer más llamadas a herramientas para completar la tarea, hazlas ahora. Si ya terminaste por completo, responde normalmente sin llamar a ninguna herramienta.]",
 					});
 					continue;
 				}
@@ -424,7 +477,7 @@ export async function runAgent(opts: RunAgentOptions): Promise<void> {
 						todoNudged = true;
 						history.push({
 							kind: "user",
-							text: `[System: Your todo list still has ${open.length} unfinished item${open.length > 1 ? "s" : ""}: ${open.map((t) => `"${t.content}"`).join(", ")}. Continue working on them now. If they are actually done or no longer needed, update the todo list, then give your final answer.]`,
+							text: `[System: Tu lista de tareas pendientes aún tiene ${open.length} elemento${open.length > 1 ? "s" : ""} sin terminar: ${open.map((t) => `"${t.content}"`).join(", ")}. Continúa trabajando en ellos ahora. Si realmente están terminados o ya no son necesarios, actualiza la lista de tareas y luego da tu respuesta final.]`,
 						});
 						continue;
 					}
@@ -437,19 +490,40 @@ export async function runAgent(opts: RunAgentOptions): Promise<void> {
 					if (flushSettledBg() > 0) continue;
 					const pending = bgSubagents.slice(bgReported);
 					const n = pending.length;
-					emit({ type: "run-status", status: "running" });
-					emit({ type: "shell-notify", message: `Waiting for ${n} background subagent${n > 1 ? "s" : ""} to finish — will resume when done…` });
-					await Promise.allSettled(pending);
-					if (signal.aborted) {
-						emit({ type: "run-status", status: "cancelled" });
-						return;
-					}
-					flushSettledBg();
-					continue;
+				emit({ type: "run-status", status: "running" });
+				emit({ type: "shell-notify", message: `Esperando a que ${n} subagente${n > 1 ? "s" : ""} en segundo plano termine${n > 1 ? "n" : ""} — se reanudará al finalizar…` });
+				await Promise.allSettled(pending);
+				if (signal.aborted) {
+					emit({ type: "run-status", status: "cancelled" });
+					return;
 				}
-				finalText = assistantText;
-				break;
+				flushSettledBg();
+				continue;
 			}
+			// In agentic modes, textual announcements like "Voy a ejecutar Glob" are
+		// NOT valid final answers. Force a real tool call instead of looping on filler.
+		if (isAgentic() && looksLikeToolNarration(assistantText)) {
+			narrationNudges++;
+			if (narrationNudges > MAX_NARRATION_NUDGES) {
+				// The model keeps narrating instead of acting. Stop the visual spam and
+				// surface a concise note so the user can rephrase or switch model.
+				emit({ type: "error", message: "El modelo siguió anunciando acciones pero nunca llamó a una herramienta. Prueba a reformular la petición o usar un modelo con mejor soporte para tool calls." });
+				emit({ type: "run-status", status: "error" });
+				return;
+			}
+			// On the next attempt, force at least one tool call via the API.
+			requireTools = true;
+			history.push({
+				kind: "user",
+				text: "[System: Acabas de anunciar una acción en texto en lugar de ejecutarla. ESTÁ PROHIBIDO escribir 'Voy a...', 'Continúo', 'Ahora', 'Vamos' o similar. Llama la herramienta directamente AHORA. Si la tarea está completa, responde de forma concisa sin relleno.]",
+			});
+			continue;
+		}
+		// If the model finally called tools (or gave a real answer), drop the forced-tool flag.
+		requireTools = false;
+		finalText = assistantText;
+		break;
+	}
 
 			// Add a separate step for the tool calls so they are separated in history
 			history.push({ kind: "assistant", text: "", calls: calls });
@@ -593,11 +667,6 @@ export async function runAgent(opts: RunAgentOptions): Promise<void> {
 			}
 		}
 
-		// Paused at the step limit with work still in flight → surface a Continue
-		// prompt in the chat instead of silently finishing.
-		if (hitStepLimit) {
-			emit({ type: "max-steps", steps: stepLimit });
-		}
 		// Usage is emitted per step above (live ring + per-step usage tracking).
 		// Safety net: if any background subagents are still unsettled (e.g. hit MAX_STEPS
 		// before the model wrapped up), wait for them so the chat isn't marked finished early.

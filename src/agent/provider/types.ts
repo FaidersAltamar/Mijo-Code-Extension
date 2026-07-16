@@ -51,5 +51,7 @@ export interface StreamChatOpts {
   maxRetries?: number;
   /** Notified before each backoff sleep when a transient error is retried. */
   onRetry?: (attempt: number, max: number, delayMs: number, error: string) => void;
+  /** When true, force the model to emit at least one tool call (OpenAI `tool_choice: "required"`). */
+  requireTools?: boolean;
 }
 

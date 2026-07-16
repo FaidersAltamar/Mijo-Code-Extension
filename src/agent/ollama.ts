@@ -15,6 +15,7 @@
 
 import { spawn, execFile } from "child_process";
 import * as vscode from "vscode";
+import { fetchWithTimeout } from "./provider";
 
 /** Base URL of the Ollama daemon (no trailing slash). */
 let HOST = "http://localhost:11434";
@@ -82,7 +83,7 @@ export function checkInstalled(): Promise<boolean> {
 
 /** List models pulled locally (via /api/tags — the CLI has no JSON output). */
 export async function listModels(): Promise<OllamaModel[]> {
-  const r = await fetch(`${HOST}/api/tags`);
+  const r = await fetchWithTimeout(`${HOST}/api/tags`, { timeoutMs: 10_000 });
   if (!r.ok) throw new Error(`ollama tags ${r.status}`);
   const d: any = await r.json();
   return (d?.models ?? []).map((m: any) => ({
@@ -178,8 +179,9 @@ export interface OllamaLibraryModel {
 
 /** Search the Ollama library by scraping ollama.com/search. */
 export async function searchLibrary(query: string): Promise<OllamaLibraryModel[]> {
-  const r = await fetch(`https://ollama.com/search?q=${encodeURIComponent(query)}`, {
+  const r = await fetchWithTimeout(`https://ollama.com/search?q=${encodeURIComponent(query)}`, {
     headers: { "user-agent": "Mozilla/5.0", accept: "text/html" },
+    timeoutMs: 20_000,
   });
   if (!r.ok) throw new Error(`ollama search ${r.status}`);
   const html = await r.text();
@@ -202,8 +204,9 @@ export async function searchLibrary(query: string): Promise<OllamaLibraryModel[]
 
 /** List the available pull tags for a library model (scrapes its tags page). */
 export async function listLibraryTags(name: string): Promise<string[]> {
-  const r = await fetch(`https://ollama.com/library/${encodeURIComponent(name)}/tags`, {
+  const r = await fetchWithTimeout(`https://ollama.com/library/${encodeURIComponent(name)}/tags`, {
     headers: { "user-agent": "Mozilla/5.0", accept: "text/html" },
+    timeoutMs: 20_000,
   });
   if (!r.ok) throw new Error(`ollama tags ${r.status}`);
   const html = await r.text();

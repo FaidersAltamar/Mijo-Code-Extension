@@ -95,7 +95,7 @@ export async function listModels(apiBaseUrl: string, apiKey: string, anthropic?:
     : apiKey
     ? { authorization: `Bearer ${apiKey}` }
     : {};
-  const r = await fetch(`${apiBaseUrl}/models`, { headers });
+  const r = await fetchWithTimeout(`${apiBaseUrl}/models`, { headers, timeoutMs: 30_000 });
   if (!r.ok) {
     throw new Error(`models ${r.status}: ${await r.text()}`);
   }
@@ -127,12 +127,37 @@ export function isRetryableError(e: unknown): boolean {
 
 export const sleep = (ms: number, signal?: AbortSignal) =>
   new Promise<void>((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(new DOMException("Aborted", "AbortError"));
+      return;
+    }
     const t = setTimeout(resolve, ms);
     signal?.addEventListener("abort", () => {
       clearTimeout(t);
       reject(new DOMException("Aborted", "AbortError"));
     }, { once: true });
   });
+
+/** Fetch with a per-request timeout and external abort signal support. */
+export async function fetchWithTimeout(
+  url: string,
+  init: RequestInit & { timeoutMs?: number }
+): Promise<Response> {
+  const { timeoutMs = 120_000, signal, ...rest } = init;
+  if (signal?.aborted) {
+    throw new DOMException("Aborted", "AbortError");
+  }
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), timeoutMs);
+  const onAbort = () => ctrl.abort();
+  signal?.addEventListener("abort", onAbort, { once: true });
+  try {
+    return await fetch(url, { ...rest, signal: ctrl.signal });
+  } finally {
+    clearTimeout(t);
+    signal?.removeEventListener("abort", onAbort);
+  }
+}
 
 /**
  * Run a streaming request with retry. Each attempt re-invokes `make()` to get a
@@ -218,7 +243,7 @@ export async function generateTitle(apiBaseUrl: string, apiKey: string, model: s
   }
   if (anthropic ?? isAnthropic(apiBaseUrl)) {
     // Force a tool call so the model returns a structured { title } object.
-    const r = await fetch(`${apiBaseUrl}/messages`, {
+    const r = await fetchWithTimeout(`${apiBaseUrl}/messages`, {
       method: "POST",
       headers: { "x-api-key": apiKey, "anthropic-version": "2023-06-01", "content-type": "application/json" },
       body: JSON.stringify({
@@ -230,6 +255,7 @@ export async function generateTitle(apiBaseUrl: string, apiKey: string, model: s
         tools: [{ name: "set_title", description: "Set the chat title.", input_schema: { type: "object", properties: { title: { type: "string", description: "3-6 word title" } }, required: ["title"] } }],
         tool_choice: { type: "tool", name: "set_title" },
       }),
+      timeoutMs: 30_000,
     });
     if (!r.ok) throw new Error(`title ${r.status}: ${(await r.text().catch(() => "")).slice(0, 200)}`);
     const d: any = parseMaybeSSE(await r.text());
@@ -238,10 +264,11 @@ export async function generateTitle(apiBaseUrl: string, apiKey: string, model: s
   }
   const msgs = [{ role: "system", content: sys }, { role: "user", content: prompt }];
   const call = async (body: Record<string, unknown>) => {
-    const r = await fetch(`${apiBaseUrl}/chat/completions`, {
+    const r = await fetchWithTimeout(`${apiBaseUrl}/chat/completions`, {
       method: "POST",
       headers: { authorization: `Bearer ${apiKey}`, "content-type": "application/json" },
       body: JSON.stringify({ ...body, stream: false }),
+      timeoutMs: 30_000,
     });
     if (!r.ok) throw new Error(`title ${r.status}: ${(await r.text().catch(() => "")).slice(0, 200)}`);
     const raw = await r.text();
@@ -338,19 +365,21 @@ export async function pickModel(apiBaseUrl: string, apiKey: string, judge: strin
     return lines.length ? lines[lines.length - 1] : text.trim();
   }
   if (useAnthropic) {
-    const r = await fetch(`${apiBaseUrl}/messages`, {
+    const r = await fetchWithTimeout(`${apiBaseUrl}/messages`, {
       method: "POST",
       headers: { "x-api-key": apiKey, "anthropic-version": "2023-06-01", "content-type": "application/json" },
       body: JSON.stringify({ model: judge, system: sys, messages: [{ role: "user", content: prompt }], max_tokens: 24 }),
+      timeoutMs: 30_000,
     });
     if (!r.ok) throw new Error(`judge ${r.status}`);
     const d: any = await r.json();
     return String(d?.content?.[0]?.text ?? "").trim();
   }
-  const r = await fetch(`${apiBaseUrl}/chat/completions`, {
+  const r = await fetchWithTimeout(`${apiBaseUrl}/chat/completions`, {
     method: "POST",
     headers: { ...(apiKey ? { authorization: `Bearer ${apiKey}` } : {}), "content-type": "application/json" },
     body: JSON.stringify({ model: judge, messages: [{ role: "system", content: sys }, { role: "user", content: prompt }], max_tokens: 24, temperature: 0 }),
+    timeoutMs: 30_000,
   });
   if (!r.ok) throw new Error(`judge ${r.status}`);
   const d: any = await r.json();
@@ -400,10 +429,10 @@ async function* streamOpenAI(opts: StreamChatOpts): AsyncGenerator<ProviderEvent
   applyOpenAISampling(body, opts.sampling);
   if (opts.tools?.length) {
     body.tools = opts.tools;
-    body.tool_choice = "auto";
+    body.tool_choice = opts.requireTools ? "required" : "auto";
   }
 
-  const r = await fetch(`${opts.apiBaseUrl}/chat/completions`, {
+  const r = await fetchWithTimeout(`${opts.apiBaseUrl}/chat/completions`, {
     method: "POST",
     headers: {
       ...(opts.apiKey ? { authorization: `Bearer ${opts.apiKey}` } : {}),
@@ -411,6 +440,7 @@ async function* streamOpenAI(opts: StreamChatOpts): AsyncGenerator<ProviderEvent
     },
     body: JSON.stringify(body),
     signal: opts.signal,
+    timeoutMs: 120_000,
   });
   if (!r.ok || !r.body) {
     const detail = await r.text().catch(() => "");
@@ -623,7 +653,7 @@ async function* streamAnthropic(opts: {
   // 1M context window is gated behind a beta header on Claude 4.x.
   const betas: string[] = [...reasoningBetas];
   if (opts.modelParams?.maxContext === "1m") betas.push("context-1m-2025-08-07");
-  const r = await fetch(`${opts.apiBaseUrl}/messages`, {
+  const r = await fetchWithTimeout(`${opts.apiBaseUrl}/messages`, {
     method: "POST",
     headers: {
       "x-api-key": opts.apiKey,
@@ -633,6 +663,7 @@ async function* streamAnthropic(opts: {
     },
     body: JSON.stringify(body),
     signal: opts.signal,
+    timeoutMs: 120_000,
   });
   if (!r.ok || !r.body) {
     const detail = await r.text().catch(() => "");

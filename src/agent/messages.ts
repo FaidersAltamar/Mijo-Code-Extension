@@ -127,7 +127,7 @@ function truncateToTokens(text: string, maxTokens: number): string {
   if (text.length <= maxChars) return text;
   const truncated = text.slice(0, maxChars);
   const lastNl = truncated.lastIndexOf("\n");
-  return (lastNl > 0 ? truncated.slice(0, lastNl) : truncated) + "\n\n[Context truncated to fit model context window]";
+  return (lastNl > 0 ? truncated.slice(0, lastNl) : truncated) + "\n\n[Contexto truncado para ajustarse a la ventana de contexto del modelo]";
 }
 
 /**
@@ -202,7 +202,7 @@ export function buildMessages(system: string, steps: Step[], ctx?: CursorContext
         }
         out.push({ role: "user", content: parts });
       } else if (images.length) {
-        parts.push({ type: "text", text: textContent || "(see attached images)" });
+        parts.push({ type: "text", text: textContent || "(ver imágenes adjuntas)" });
         for (const img of images) {
           parts.push({ type: "image_url", image_url: { url: img.data } });
         }
@@ -234,7 +234,7 @@ export function buildMessages(system: string, steps: Step[], ctx?: CursorContext
           role: "tool",
           tool_call_id: s.callId,
           content: [
-            { type: "text", text: s.output || "(image)" },
+            { type: "text", text: s.output || "(imagen)" },
             { type: "image_url", image_url: { url: dataUrl } },
           ],
         });

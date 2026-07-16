@@ -7,6 +7,7 @@
  * Licensed under the MIT License. See LICENSE file in the project root.
  */
 
+import { fetchWithTimeout } from "../provider";
 import { defineTool } from "./types";
 
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36";
@@ -69,9 +70,10 @@ function parseDdgHtml(html: string, limit: number): SearchHit[] {
 }
 
 async function ddgSearch(term: string, endpoint: string, signal: AbortSignal | undefined, limit: number): Promise<SearchHit[]> {
-  const r = await fetch(`${endpoint}?q=${encodeURIComponent(term)}`, {
+  const r = await fetchWithTimeout(`${endpoint}?q=${encodeURIComponent(term)}`, {
     headers: { "user-agent": UA, "accept-language": "en-US,en;q=0.9" },
     signal,
+    timeoutMs: 30_000,
   });
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
   return parseDdgHtml(await r.text(), limit);
@@ -174,10 +176,11 @@ export const webFetchTool = defineTool("WebFetch", false, async (input, abortSig
   }
 
   try {
-    const r = await fetch(url.toString(), {
+    const r = await fetchWithTimeout(url.toString(), {
       headers: { "user-agent": UA, accept: "text/html,application/xhtml+xml,text/plain;q=0.9,*/*;q=0.5" },
       redirect: "follow",
       signal: abortSignal,
+      timeoutMs: 30_000,
     });
 
     if (r.status === 401 || r.status === 403) {

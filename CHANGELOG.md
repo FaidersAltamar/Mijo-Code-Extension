@@ -4,6 +4,43 @@ All notable changes to the "ocursor" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.0.15] - 2026-07-15
+
+### Fixed
+
+- Increased the internal context safety margin from 5% to 12% (minimum 8192 tokens) to stop the remaining "exceeded model token limit" errors.
+- Lowered the default `ocursor.maxContextTokens` from 245,760 to 240,000.
+- Hardened the anti-narration guard: filler text is no longer added to history, the system prompt is stricter, and the loop stops repetitive loops faster.
+
+## [0.0.14] - 2026-07-15
+
+### Fixed
+
+- Translated remaining hardcoded English UI strings to Spanish.
+
+## [0.0.13] - 2026-07-15
+
+### Fixed
+
+- Drastically simplified the system prompt to reduce model confusion and eliminate repetitive filler output.
+- Added `tool_choice: "required"` forcing when the model starts narrating instead of calling tools.
+- Added a repetition guard that stops the run if the model emits the same filler pattern multiple times in a row, preventing the visual-spam loops.
+- Limited narration nudges to 2 attempts before surfacing a clean error instead of looping forever.
+
+## [0.0.12] - 2026-07-15
+
+### Fixed
+
+- Agent runs now auto-resume when they reach the step limit instead of pausing for a manual Continue click.
+- Hardened system prompt and loop nudges to stop the model from narrating tool calls ("Voy a ejecutar Glob", "Buscando", etc.) and force it to call tools directly.
+
+## [0.0.11] - 2026-07-15
+
+### Fixed
+
+- Added an internal safety margin (5% of the configured context window, at least 4096 tokens) to all context-budget calculations, preventing the remaining "exceeded model token limit" 400 errors caused by imprecise local token estimates.
+- Lowered the default `ocursor.maxContextTokens` from 262,144 to 245,760 to leave headroom below common 256k model limits.
+
 ## [0.0.9] - 2026-07-14
 
 ### Fixed
