@@ -4,6 +4,12 @@ All notable changes to the "ocursor" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.0.16] - 2026-07-15
+
+### Fixed
+
+- Increased streaming request timeouts from 2 minutes to 10 minutes across OpenAI, Anthropic and OAuth providers, preventing "This operation was aborted" errors on long-running agent tasks.
+
 ## [0.0.15] - 2026-07-15
 
 ### Fixed

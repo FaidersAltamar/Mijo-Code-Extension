@@ -440,7 +440,8 @@ async function* streamOpenAI(opts: StreamChatOpts): AsyncGenerator<ProviderEvent
     },
     body: JSON.stringify(body),
     signal: opts.signal,
-    timeoutMs: 120_000,
+    // Streaming replies can take several minutes for long reasoning/tool outputs.
+    timeoutMs: 600_000,
   });
   if (!r.ok || !r.body) {
     const detail = await r.text().catch(() => "");
@@ -663,7 +664,8 @@ async function* streamAnthropic(opts: {
     },
     body: JSON.stringify(body),
     signal: opts.signal,
-    timeoutMs: 120_000,
+    // Streaming replies can take several minutes for long reasoning/tool outputs.
+    timeoutMs: 600_000,
   });
   if (!r.ok || !r.body) {
     const detail = await r.text().catch(() => "");

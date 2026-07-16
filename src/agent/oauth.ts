@@ -827,7 +827,8 @@ async function* streamClaudeCode(id: string, opts: {
     },
     body: JSON.stringify(body),
     signal: opts.signal,
-    timeoutMs: 120_000,
+    // Streaming replies can take several minutes for long reasoning/tool outputs.
+    timeoutMs: 600_000,
   });
   if (!r.ok || !r.body) {
     throw new ChatHTTPError(r.status, `claude-code ${r.status}: ${(await r.text().catch(() => "")).slice(0, 500)}`);
@@ -871,7 +872,8 @@ async function* streamCodex(id: string, opts: {
     },
     body: JSON.stringify(body),
     signal: opts.signal,
-    timeoutMs: 120_000,
+    // Streaming replies can take several minutes for long reasoning/tool outputs.
+    timeoutMs: 600_000,
   });
   if (!r.ok || !r.body) {
     throw new ChatHTTPError(r.status, `codex ${r.status}: ${(await r.text().catch(() => "")).slice(0, 500)}`);
@@ -1158,7 +1160,8 @@ async function* streamAntigravity(id: string, opts: {
     },
     body: JSON.stringify(body),
     signal: opts.signal,
-    timeoutMs: 120_000,
+    // Streaming replies can take several minutes for long reasoning/tool outputs.
+    timeoutMs: 600_000,
   });
   if (!r.ok || !r.body) {
     throw new ChatHTTPError(r.status, `antigravity ${r.status}: ${(await r.text().catch(() => "")).slice(0, 500)}`);

@@ -133,7 +133,8 @@ async function embedRemote(texts: string[]): Promise<number[][] | null> {
       method: "POST",
       headers: { "content-type": "application/json", authorization: `Bearer ${remoteCfg.apiKey}` },
       body: JSON.stringify({ model: remoteCfg.id, input: texts }),
-      timeoutMs: 120_000,
+      // Embedding many chunks can take several minutes on large repos.
+      timeoutMs: 600_000,
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`);
     const json: any = await res.json();
