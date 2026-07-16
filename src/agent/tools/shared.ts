@@ -14,7 +14,35 @@ import type { ChildProcess } from "child_process";
 import type { SubagentRunner, QuestionAsker } from "./types";
 
 // Directories never walked/listed.
-export const IGNORE = new Set([".git", "node_modules", "dist", "out"]);
+export const IGNORE = new Set([
+  ".git",
+  "node_modules",
+  "dist",
+  "out",
+  "build",
+  ".next",
+  ".nuxt",
+  ".cache",
+  "coverage",
+  "target", // Rust / Tauri build output
+  ".cargo",
+  ".tauri",
+  ".vercel",
+  ".output",
+  ".turbo",
+  ".svelte-kit",
+  ".angular",
+  "bin",
+  "obj",
+  "Debug",
+  "Release",
+  "packages",
+  "vendor",
+  "Pods",
+  ".gradle",
+  "tmp",
+  "temp",
+]);
 
 // Stopwords for the keyword-based SemanticSearch fallback.
 export const STOP = new Set([
@@ -97,12 +125,15 @@ export function firstDiffLine(before: string, after: string): number {
 // Filesystem walking / globbing / fuzzy matching
 // ---------------------------------------------------------------------------
 
+const WALK_FILE_LIMIT = 10_000;
+
 /**
  * Recursively collect file paths under `dir` (depth-capped). IGNORE dirs
- * (.git/node_modules/dist/out) are skipped unless `includeIgnored` is true.
+ * are skipped unless `includeIgnored` is true. Stops once WALK_FILE_LIMIT
+ * files have been collected so huge build directories cannot hang the agent.
  */
 export async function walk(dir: string, out: string[], depth: number, includeIgnored = false): Promise<void> {
-  if (depth > 12) return;
+  if (depth > 12 || out.length >= WALK_FILE_LIMIT) return;
   let entries;
   try {
     entries = await fs.readdir(dir, { withFileTypes: true });
@@ -110,6 +141,7 @@ export async function walk(dir: string, out: string[], depth: number, includeIgn
     return;
   }
   for (const e of entries) {
+    if (out.length >= WALK_FILE_LIMIT) return;
     if (!includeIgnored && IGNORE.has(e.name)) continue;
     const full = path.join(dir, e.name);
     if (e.isDirectory()) {

@@ -4,6 +4,13 @@ All notable changes to the "ocursor" extension will be documented in this file.
 
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
+## [0.0.18] - 2026-07-15
+
+### Fixed
+
+- Expanded the filesystem ignore lists to skip common build/dependency directories (target, .next, .cargo, .tauri, .cache, coverage, etc.) so Tauri/Rust projects with huge `src-tauri/target` folders no longer hang or confuse the agent.
+- Added a 10,000-file hard cap to `walk()` to prevent runaway scans of oversized directories.
+
 ## [0.0.17] - 2026-07-15
 
 ### Fixed

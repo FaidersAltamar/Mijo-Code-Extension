@@ -13,7 +13,35 @@ import * as path from "path";
 import { spawn } from "child_process";
 import { getWorkspaceRoot } from "./workspaceUtils";
 
-const IGNORE = new Set([".git", "node_modules", "dist", "out", ".next", "build", ".cache", "coverage"]);
+const IGNORE = new Set([
+  ".git",
+  "node_modules",
+  "dist",
+  "out",
+  "build",
+  ".next",
+  ".nuxt",
+  ".cache",
+  "coverage",
+  "target", // Rust / Tauri build output
+  ".cargo",
+  ".tauri",
+  ".vercel",
+  ".output",
+  ".turbo",
+  ".svelte-kit",
+  ".angular",
+  "bin",
+  "obj",
+  "Debug",
+  "Release",
+  "packages",
+  "vendor",
+  "Pods",
+  ".gradle",
+  "tmp",
+  "temp",
+]);
 
 async function buildTree(dir: string, prefix: string, depth: number, lines: string[], budget: { n: number }): Promise<void> {
   if (depth > 3 || budget.n <= 0) {
